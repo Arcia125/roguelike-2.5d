@@ -1,0 +1,6 @@
+/node_modules/
+*.lnk
+*.sublime-project
+*.sublime-workspace
+*.xcf
+npm-debug.log.*
