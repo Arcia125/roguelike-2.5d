@@ -1,1 +1,50 @@
 @import 'utilities/variables';
+
+body {
+	background: black;
+	color: white;
+}
+
+.hud-info {
+	margin-right: 1rem;
+}
+
+.screen {
+	@include flex(column, nowrap);
+}
+
+.screen-row {
+	@include flex(row, nowrap);
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.screen-cell {
+	display: inline-block;
+	height: 1rem;
+	width: 1rem;
+}
+
+.wall {
+	background: $wall-bg;
+}
+
+.floor {
+	background: $floor-bg;
+}
+
+.player {
+	background: $player-bg;
+}
+
+.enemy {
+	background: $enemy-bg;
+}
+
+.weapon {
+	background: $weapon-bg;
+}
+
+.health {
+	background: $health-bg;
+}

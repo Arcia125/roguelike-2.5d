@@ -4,8 +4,17 @@ var html = require('./index.html');
 const React = require('react');
 const ReactDOM = require('react-dom');
 
-import Game from './app/game.js';
+import { Provider } from 'react-redux';
+import { createStore } from 'redux';
+import AllReducers from './reducers';
 
-console.log(Game);
+import Game from './containers/game.js';
 
-ReactDOM.render(<Game/>, document.getElementById('app-anchor'));
+let store = createStore(AllReducers, {});
+
+const appAnchor = document.getElementById('app-anchor');
+
+ReactDOM.render(
+	<Provider store={store} >
+	<Game />
+	</Provider>, appAnchor);

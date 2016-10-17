@@ -1,0 +1,38 @@
+$wall-bg: #666666;
+$floor-bg: #DDDDDD;
+$player-bg: #2222AA;
+$enemy-bg: #AA2222;
+$weapon-bg: #AAAA22;
+$health-bg: #22AA22;
+
+@mixin flex($direction: row, $wrap: wrap) {
+	display: -ms-Flexbox;
+	-ms-box-orient: horizontal;
+
+	display: -webkit-flex;
+	display: -moz-flex;
+	display: -ms-flex;
+	display: flex;
+
+	-webkit-flex-flow: $direction $wrap;
+	-moz-flex-flow: $direction $wrap;
+	-ms-flex-flow: $direction $wrap;
+	flex-flow: $direction $wrap;
+}
+
+// media query size variables
+$tablet-width: 768px;
+$desktop-width: 1024px;
+
+// media query mixins
+@mixin tablet {
+	@media (min-width: #{$tablet-width}) {
+		@content;
+	}
+}
+
+@mixin desktop {
+	@media (min-width: #{$desktop-width}) {
+		@content;
+	}
+}
