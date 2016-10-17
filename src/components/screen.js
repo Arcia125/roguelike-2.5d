@@ -38,16 +38,17 @@ class Screen extends Component {
 	 * @return {JSX Object} A grid of html elements.
 	 */
 	createScreen() {
+		let width = this.props.screen.length;
 		let screen = this.props.screen.map((row, rowId) => {
 			row = row.map((cell, cellId) => {
 				let cellClass = 'screen-cell ' + this.getCellClass(cell);
 				return (
-					<span key={cellId} className={cellClass}>
+					<span id={cellId + (rowId * width)} key={cellId + (rowId * width)} className={cellClass}>
 					</span>
 					);
 			});
 			return (
-				<div key={rowId} className='screen-row'>
+				<div id={rowId + (width * width)} key={rowId + (width * width)} className='screen-row'>
 					{row}
 				</div>
 				);

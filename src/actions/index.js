@@ -29,3 +29,5 @@ export const decLevel = amount => ({type: 'DEC_LEVEL', amount});
 export const addXP = amount => ({type: 'ADD_XP', amount});
 
 export const updateBoard = board => ({type: 'UPDATE_BOARD', board});
+
+export const move = (xChange, yChange) => ({type: 'MOVE', xChange, yChange});

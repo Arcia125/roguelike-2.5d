@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import {
 	dealDmg,
 	updateBoard,
+	move,
 } from '../actions';
 
 // containers
@@ -18,7 +19,8 @@ import Screen from '../components/screen';
 import {
 	createEmptyMap,
 	makeRoom,
-	insertRoom
+	insertRoom,
+	makeRandomRoom
 } from '../logic/level';
 
 
@@ -26,6 +28,17 @@ class Game extends Component {
 	componentWillMount() {
 		let mapArr = insertRoom(createEmptyMap(), makeRoom(10, 15, 22, 45));
 		this.props.updateBoard(mapArr);
+		window.addEventListener('keydown', (e) => {
+			if (e.keyCode == 87 || e.keyCode == 38) {
+				this.props.move(0, -1);
+			} else if (e.keyCode == 65 || e.keyCode == 37) {
+				this.props.move(-1, 0);
+			} else if (e.keyCode == 83 || e.keyCode == 40) {
+				this.props.move(0, 1);
+			} else if (e.keyCode == 68 || e.keyCode == 39) {
+				this.props.move(1, 0);
+			}
+		}, false);
 	}
 
 	calculateAtk(lvl, wpnDmg = 12) {
@@ -40,7 +53,7 @@ class Game extends Component {
 	 */
 	getScreen() {
 		let player = this.props.player;
-		let board = this.props.board;
+		let board = Object.assign([], this.props.board);
 		// Sets camera bounding box around player.
 		let offset = 25;
 
@@ -59,8 +72,11 @@ class Game extends Component {
 			camera.bottom = board.length;
 			camera.top = camera.bottom - (2 * offset);
 		}
+		return board.slice(camera.top, camera.bottom);
+	}
 
-		return board.splice(camera.top, camera.bottom);
+	componentWillReceiveProps(nextProps) {
+		
 	}
 
 	render() {
@@ -94,6 +110,7 @@ const mapDispatchToProps = (dispatch) => {
 	return bindActionCreators({
 		dealDmg,
 		updateBoard,
+		move,
 	}, dispatch)
 }
 

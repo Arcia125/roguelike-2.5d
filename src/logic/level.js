@@ -1,3 +1,6 @@
+// return a random integer between min an max.
+const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+
 /**
  * Generates a room object.
  * @param  {Number} height height of the room object
@@ -11,10 +14,62 @@ export const makeRoom = (height, width, x, y) => ({height, width, x, y});
 // Returns a random number representing a wall of a room.
 export const getRandomWall = () => Math.floor(Math.random() * 4);
 
-export const makeRandomRoom = (mapHeight, mapWidth, roomSize = 10) => {
-	let maxRoomSize = roomSize * 1.5;
-	let minRoomSize = Math.floor(roomSize * .3);
-	// let room = makeRoom(())
+/**
+ * Returns the center of a random room wall.
+ * @param  {Object} room Room object to select wall from.
+ * @return {[type]}      An object containing coordinates of the wall.
+ */
+export const getRandRoomWall = (room) => {
+	let position;
+	let wall = getRandomWall();
+	if (wall == 0) {
+		position = {
+			x: room.x + (room.width / 2),
+			y: room.y,
+			direction: 'north'
+		};
+	}else if (wall == 1) {
+		position = {
+			x: room.x + room.width,
+			y: room.y + (room.height / 2),
+			direction: 'east'
+		}
+	}else if (wall == 2) {
+		position = {
+			x: room.x + (room.width /2 ),
+			y: room.y + room.height,
+			direction: 'south'
+
+		}
+	}else if (wall == 3) {
+		position = {
+			x: room.x,
+			y: room.y + (room.height / 2),
+			direction: 'west'
+		}
+	}else {
+		position = {
+			x: room.x,
+			y: room.y
+		}
+	}
+	return position;
+}
+
+/**
+ * Makes a random room at a location the map.
+ * @param  {Number} x        Coordinate x
+ * @param  {Number} y        Coordinate y
+ * @param  {Number} roomSize Approximate desired size of room.
+ * @return {Object}          Room object
+ */
+export const makeRandomRoom = (x, y, roomSize = 10) => {
+	let maxRoomSize = Math.floor(roomSize * 1.5) + 1;
+	let minRoomSize = Math.floor(roomSize * .3) + 1;
+	let height = getRandomInt(minRoomSize, maxRoomSize);
+	let width = getRandomInt(minRoomSize, maxRoomSize);
+	let room = makeRoom(height, width, x, y);
+	return room;
 }
 
 /**
@@ -60,5 +115,19 @@ export const insertRoom = (mapArr, room, fillValue = 1) => {
 	return mapArr;
 }
 
-export const generateRandomMap = (height = 100, width = 60, minRoomSize = 10, maxRoomSize = 30, roomDensity = 6) => {
+export const generateRandomMap = (height = 100, width = 60, roomSize = 10, roomDensity = 6) => {
+	// Generate a map full of walls to start
+	let map = createEmptyMap(height, width);
+
+	// Generate a large room in the middle of the map.
+	let mainRoom = makeRandomRoom((width / 2), (height / 2), Math.floor(roomSize * 1.5));
+	map = insertRoom(map, mainRoom);
+
+	let prevRoom = Object.assign({}, mainRoom);
+	let currentRoom;
+	let startPoint;
+	for (let room = 0; room < ((height * width) / roomDensity); room++) {
+		currentRoom = Object.assign({}, prevRoom);
+		startPoint = getRandomWall(currentRoom);
+	}
 }

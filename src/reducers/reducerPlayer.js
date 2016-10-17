@@ -5,7 +5,7 @@ const initialPlayer = {
 	lvl: 1,
 	xp: 0,
 	x: 0,
-	y: 0,
+	y: 40,
 };
 
 export default (state = initialPlayer, action) => {
@@ -13,6 +13,13 @@ export default (state = initialPlayer, action) => {
 		case 'TAKE_DMG':
 			return action.amount;
 			break;
+		case 'MOVE':
+			return Object.assign({}, state, {
+				x: state.x = action.xChange,
+				y: state.y + action.yChange
+			});
+			break;
+
 	}
 	return state;
 }
