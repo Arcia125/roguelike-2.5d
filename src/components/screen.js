@@ -43,7 +43,7 @@ class Screen extends Component {
 			row = row.map((cell, cellId) => {
 				let cellClass = 'screen-cell ' + this.getCellClass(cell);
 				return (
-					<span id={cellId + (rowId * width)} key={cellId + (rowId * width)} className={cellClass}>
+					<span id={`x-${cellId}_y-${rowId}`} key={cellId + (rowId * width)} className={cellClass}>
 					</span>
 					);
 			});

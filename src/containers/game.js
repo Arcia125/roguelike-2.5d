@@ -20,14 +20,15 @@ import {
 	createEmptyMap,
 	makeRoom,
 	insertRoom,
-	makeRandomRoom
+	makeRandomRoom,
+	generateRandomMap
 } from '../logic/level';
 
 
 class Game extends Component {
 	componentWillMount() {
-		let mapArr = insertRoom(createEmptyMap(), makeRoom(10, 15, 22, 45));
-		this.props.updateBoard(mapArr);
+		// let mapArr = insertRoom(createEmptyMap(), makeRoom(10, 15, 22, 45));
+		this.props.updateBoard(generateRandomMap());
 		window.addEventListener('keydown', (e) => {
 			if (e.keyCode == 87 || e.keyCode == 38) {
 				this.props.move(0, -1);
@@ -76,7 +77,7 @@ class Game extends Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
-		
+
 	}
 
 	render() {
