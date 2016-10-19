@@ -13,22 +13,16 @@ class Screen extends Component {
 		switch (cell) {
 			case 0:
 				return 'wall';
-				break;
 			case 1:
 				return 'floor';
-				break;
 			case 2:
 				return 'player';
-				break;
 			case 3:
 				return 'enemy';
-				break;
 			case 4:
 				return 'weapon';
-				break;
 			case 5:
 				return 'health';
-				break;
 		}
 	}
 

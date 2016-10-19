@@ -17,26 +17,21 @@ import Screen from '../components/screen';
 
 // logic
 import {
-	createEmptyMap,
-	makeRoom,
-	insertRoom,
-	makeRandomRoom,
-	generateRandomMap
+	generateRandomMap,
 } from '../logic/level';
 
 
 class Game extends Component {
 	componentWillMount() {
-		// let mapArr = insertRoom(createEmptyMap(), makeRoom(10, 15, 22, 45));
 		this.props.updateBoard(generateRandomMap());
-		window.addEventListener('keydown', (e) => {
-			if (e.keyCode == 87 || e.keyCode == 38) {
+		window.addEventListener('keydown', (keyEvent) => {
+			if (keyEvent.keyCode == 87 || keyEvent.keyCode == 38) {
 				this.props.move(0, -1);
-			} else if (e.keyCode == 65 || e.keyCode == 37) {
+			} else if (keyEvent.keyCode == 65 || keyEvent.keyCode == 37) {
 				this.props.move(-1, 0);
-			} else if (e.keyCode == 83 || e.keyCode == 40) {
+			} else if (keyEvent.keyCode == 83 || keyEvent.keyCode == 40) {
 				this.props.move(0, 1);
-			} else if (e.keyCode == 68 || e.keyCode == 39) {
+			} else if (keyEvent.keyCode == 68 || keyEvent.keyCode == 39) {
 				this.props.move(1, 0);
 			}
 		}, false);

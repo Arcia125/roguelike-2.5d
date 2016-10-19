@@ -72,7 +72,7 @@ export const makeRoom = (height, width, x, y) => {
  * @param  {Number} roomSize Approximate desired size of room.
  * @return {Object}          Room object
  */
-export const makeRandomRoom = (x, y, roomSize = 10) => {
+export const makeRandomRoom = ({ x, y }, roomSize = 10) => {
 	let maxRoomSize = Math.floor(roomSize * 1.5) + 1;
 	let minRoomSize = Math.floor(roomSize * .3) + 1;
 	let height = getRandomInt(minRoomSize, maxRoomSize);
@@ -87,6 +87,8 @@ export const makeRandomRoom = (x, y, roomSize = 10) => {
  * @return {Boolean}  True if the room is in the map. False if the room isn't in the map.
  */
 export const roomIsInMap = (room, mapHeight, mapWidth) => {
+	// If any of these conditions are met,
+	// return false because the room has coordinate values that fall outside of the map.
 	return !(room.x < 0
 		|| room.y < 0
 		|| room.x > mapWidth
@@ -103,19 +105,39 @@ export const roomIsInMap = (room, mapHeight, mapWidth) => {
  * @return {Object}           Rotated room
  */
 export const faceRoom = (room, direction) => {
-	let newRoom;
 	if (direction === 'south') {
+		// Just returns the room because rooms are generated facing south by default.
 		return room;
 	} else if (direction === 'north') {
-		newRoom = makeRoom(room.height, room.width, room.x, room.y - room.height);
-		return newRoom;
+		// Translates the room up by it's height
+		return makeRoom(room.height, room.width, room.x, room.y - room.height);
 	} else if (direction === 'east') {
-		return room;
+		// Switches the room.height and room.width to effectively rotate the room 90 degrees.
+		return makeRoom(room.width, room.height, room.x, room.y);
 	} else if (direction === 'west') {
-		newRoom = makeRoom(room.width, room.height, room.x - room.height, room.y);
-		return newRoom;
+		// Switches the room.height and room.width to effectively rotate the room 90 degrees.
+		// Also translates the room left by it's width.
+		return makeRoom(room.width, room.height, room.x - room.height, room.y);
 	}
-	return room;
+}
+
+/**
+ * Creats a corridor with specified paramaters.
+ * @param  {Number}  length            Corridor length or maxLength if random.
+ * @param  {Number}  x                 Corridor x coordinate.
+ * @param  {Number}  y                 Corridor y coordinate.
+ * @param  {String}  direction         Direction to face the corridor.
+ * @param  {Boolean} options.random    Optional parameter that determines if a
+ *                                     random corridor will be created.
+ * @param  {Number}  options.thickness Optional parameter for corridor thickness or width.
+ * @param  {Number}  options.minLength Optional parameter for a random corridor's minimum length.
+ * @return {Object}                    The created corridor.
+ */
+export const makeCorridor = (length, x, y, direction, { random = false, thickness = 1, minLength = 2 } = {}) => {
+	if (random) {
+		return faceRoom(makeRoom(getRandomInt(minLength, length * 1.5), thickness, x, y), direction);
+	}
+	return faceRoom(makeRoom(length, thickness, x, y), direction);
 }
 
 /**
@@ -125,23 +147,23 @@ export const faceRoom = (room, direction) => {
  * @return {Object}                   Returns a an object with a corridor and newRoom property.
  */
 export const connectRandRoom = ({x, y, direction}, roomSize) => {
-	let corridor = faceRoom(makeRoom(getRandomInt(2, (roomSize * 1.5)), 1, x, y), direction);
-	let connectPoint;
 
-	if (direction === 'south') {
-		connectPoint = corridor.bottomLeft;
-	} else if (direction === 'north') {
-		connectPoint = corridor.topLeft;
-	} else if (direction === 'east') {
-		connectPoint = corridor.topRight;
-	} else if (direction === 'west') {
-		connectPoint = corridor.topLeft;
-	} else {
-		connectPoint = corridor.bottomLeft;
-		console.log(`could not find direction ${direction}`);
+	// Make a corridor of a random length at the wall coordinates facing in the direction.
+	const corridor = makeCorridor(roomSize, x, y, direction, { random: true });
+
+	const getConnectPoint = () => {
+		if (direction === 'south') {
+			return corridor.bottomLeft;
+		} else if (direction === 'north') {
+			return corridor.topLeft;
+		} else if (direction === 'east') {
+			return corridor.topRight;
+		} else if (direction === 'west') {
+			return corridor.topLeft;
+		}
 	}
-	let newRoom = faceRoom(makeRandomRoom(connectPoint.x, connectPoint.y, roomSize), direction);
 
+	let newRoom = faceRoom(makeRandomRoom(getConnectPoint(), roomSize), direction);
 	return {
 		corridor,
 		newRoom
@@ -151,38 +173,40 @@ export const connectRandRoom = ({x, y, direction}, roomSize) => {
 /**
  * Returns the center of a random room wall.
  * @param  {Object} room Room object to select wall from.
- * @return {Object}      An object containing coordinates of the wall.
+ * @return {Object}      An object containing coordinates of the wall and the direction it faces.
  */
-export const getRandRoomWall = (room) => {
-	let position;
+export const pickRandomWall = (room) => {
+
+	// Gets a random wall side number.
 	let wall = getRandomInt(0, 4);
+
+	// 0 = north, 1 = east, 2 = south, 3 = west
 	if (wall === 0) {
-		position = {
+		return {
 			x: room.x + (room.width / 2),
 			y: room.y,
 			direction: 'north'
 		};
 	}else if (wall === 1) {
-		position = {
+		return {
 			x: room.x + room.width,
 			y: room.y + (room.height / 2),
 			direction: 'east'
-		}
+		};
 	}else if (wall === 2) {
-		position = {
+		return {
 			x: room.x + (room.width /2 ),
 			y: room.y + room.height,
 			direction: 'south'
 
-		}
+		};
 	}else if (wall === 3) {
-		position = {
+		return {
 			x: room.x,
 			y: room.y + (room.height / 2),
 			direction: 'west'
-		}
+		};
 	}
-	return position;
 }
 
 
@@ -193,18 +217,13 @@ export const getRandRoomWall = (room) => {
  * @param  {Number} fillValue	Value the map will be filled with. Default: 0
  * @return {Array}				Two dimensional Array representing a map.
  */
-export const createEmptyMap = (
-	height = 100,
-	width = 60,
-	fillValue = 0) => {
-	let x, y;
-	let mapArr = [];
-	let mapRow = [];
-	for (y = 0; y < height; y++) {
-		// empty mapRow
-		mapRow = [];
-		for (x = 0; x < width; x++) {
-			// fill the mapRow
+export const createEmptyMap = ({ height = 100, width = 60, fillValue = 0} = {}) => {
+	const mapArr = [];
+	for (let y = 0; y < height; y++) {
+		// Create an empty row.
+		let mapRow = [];
+		for (let x = 0; x < width; x++) {
+			// Fill the mapRow.
 			mapRow.push(fillValue);
 		}
 		// push the mapRow onto mapArr
@@ -221,9 +240,8 @@ export const createEmptyMap = (
  *                            	map array.
  * @return {Array}				The modified map array.
  */
-export const insertRoom = (mapArr, room, fillValue = 1) => {
-	let y;
-	for (y = room.y; y < room.y + room.height; y++) {
+export const insertRoom = (mapArr, room, { fillValue = 1 } = {}) => {
+	for (let y = room.y; y < room.y + room.height; y++) {
 		mapArr[y] = mapArr[y].fill(fillValue, room.x, room.x + room.width);
 	}
 	return mapArr;
@@ -232,49 +250,47 @@ export const insertRoom = (mapArr, room, fillValue = 1) => {
 
 /**
  * Generates a random map.
- * @param  {Number} height
- * @param  {Number} width
+ * @param  {Number} height    Map height
+ * @param  {Number} width     Map width
  * @param  {Number} roomSize  Median room size.
  * @param  {Number} roomCount Desired number of rooms on the generated map.
  * @return {Object}           Generated Map
  */
-export const generateRandomMap = (height = 100, width = 60, roomSize = 6, roomCount = 50) => {
+export const generateRandomMap = ({height = 100, width = 60, roomSize = 8, roomCount = 30} = {}) => {
 	// Generate a map full of walls to start.
-	let map = createEmptyMap(height, width);
-
-	// Generate the starting room.
-	let mainRoomSize = 10;
-	let mainRoom = makeRoom(mainRoomSize, mainRoomSize, (width / 2) - (mainRoomSize / 2), (height / 2) - (mainRoomSize / 2));
-
-	// Starting point for each new room. Describes a wall.
-	let startPoint;
+	const map = createEmptyMap({height, width});
 
 	// Array of rooms generated by the while loop.
-	let roomArr = [];
+	const roomArr = [];
 
-	// Contains the next corridor and next room to be added to the array.
-	let next = {
+	// Generate the starting room.
+	const mainRoomSize = 10;
+	roomArr.push({
 		corridor: makeRoom(0, 0, 0, 0),
-		newRoom: mainRoom
-	};
-	roomArr.push(next);
+		newRoom: makeRoom(mainRoomSize, mainRoomSize, (width / 2) - (mainRoomSize / 2), (height / 2) - (mainRoomSize / 2))
+	});
 
-	// The room that the next room will be connected to.
-	let baseRoom;
+	// Tracks the number of attempts to prevent an infinite loop.
+	const attemptCount = (() => {
+		let count = 0;
+		return {
+			countUp() {
+				count += 1;
+			},
+			lessThan(maxAttempts) {
+				return count < maxAttempts;
+			},
+		};
+	})();
 
-	let attemptCount = 0;
-	// Fill roomArr with corridors and rooms.
-	while (roomArr.length <= roomCount && attemptCount < roomCount * 3) {
-		attemptCount += 1;
+	// Fill roomArr with corridors and rooms until either the roomCount or attemptCount is met.
+	while (roomArr.length <= roomCount && attemptCount.lessThan(roomCount * 3)) {
+		attemptCount.countUp();
 
-		// Pick a room from the array of existing rooms at random.
-		baseRoom = Object.assign({}, roomArr[getRandomInt(0, roomArr.length)]['newRoom']);
-
-		// Pick a random wall as the start point.
-		startPoint = getRandRoomWall(baseRoom);
-
-		// Generate a corridor and a connecting room from the baseRoom startPoint.
-		next = connectRandRoom(startPoint, roomSize);
+		// Pick a random wall of a random room in roomArr as the starting point.
+		let randomStartWall = pickRandomWall(roomArr[getRandomInt(0, roomArr.length)].newRoom)
+		// Generate a corridor and a connecting room from the randomStartWall.
+		let next = connectRandRoom(randomStartWall, roomSize);
 
 		// Only push the new rooms and corridor if they within the map.
 		if (roomIsInMap(next.corridor, height, width) && roomIsInMap(next.newRoom, height, width)) {
@@ -284,9 +300,8 @@ export const generateRandomMap = (height = 100, width = 60, roomSize = 6, roomCo
 
 	// puts rooms into the map array
 	roomArr.forEach((roomObj) => {
-		insertRoom(map, roomObj.corridor, 1);
-		insertRoom(map, roomObj.newRoom, 1);
+		insertRoom(map, roomObj.corridor, { fillValue: 1 });
+		insertRoom(map, roomObj.newRoom, { fillValue: 1 });
 	});
-
 	return map;
 }

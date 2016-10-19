@@ -1,10 +1,13 @@
-var webpack = require('webpack');
-var path = require('path');
-var OpenBrowserPlugin = require('open-browser-webpack-plugin');
-var host = 'localhost';
-var port = 8001;
+const webpack = require('webpack');
+const path = require('path');
+const OpenBrowserPlugin = require('open-browser-webpack-plugin');
+const host = 'localhost';
+const port = 8001;
 
-module.exports = {
+const prod = process.argv.indexOf('-p') !== -1;
+
+
+const config = {
 	context: path.join(__dirname, 'src'),
 	entry: {
 		main: './main.js'
@@ -51,3 +54,21 @@ module.exports = {
 		new OpenBrowserPlugin({ url: 'http://' + host + ':' + port})
 	]
 }
+
+
+config.plugins = config.plugins||[];
+if (prod) {
+  config.plugins.push(new webpack.DefinePlugin({
+      'process.env': {
+          'NODE_ENV': `"production"`
+      }
+  }));
+} else {
+  config.plugins.push(new webpack.DefinePlugin({
+      'process.env': {
+          'NODE_ENV': `""`
+      }
+  }));
+}
+
+module.exports = config;
