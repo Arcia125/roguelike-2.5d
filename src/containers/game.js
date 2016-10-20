@@ -33,6 +33,9 @@ class Game extends Component {
 				this.props.move(0, 1);
 			} else if (keyEvent.keyCode == 68 || keyEvent.keyCode == 39) {
 				this.props.move(1, 0);
+			} else if (keyEvent.keyCode == 85) {
+				this.props.updateBoard(generateRandomMap());
+				// console.log(`updating map because you pressed U`);
 			}
 		}, false);
 	}
@@ -69,10 +72,6 @@ class Game extends Component {
 			camera.top = camera.bottom - (2 * offset);
 		}
 		return board.slice(camera.top, camera.bottom);
-	}
-
-	componentWillReceiveProps(nextProps) {
-
 	}
 
 	render() {

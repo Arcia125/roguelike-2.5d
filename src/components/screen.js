@@ -1,29 +1,24 @@
 import React, { Component } from 'react';
 
-
+const classes = {
+	0: 'wall',
+	1: 'floor',
+	2: 'player',
+	3: 'enemy',
+	4: 'weapon',
+	5: 'health',
+	6: 'darkness',
+};
 class Screen extends Component {
 	/**
-	 * Returns a className based on the cell argument.
-	 * @param  {Number} cell Value from the this.props.screen array.
-	 * @return {String}      CSS class based on cell argument.
+	 * Returns a className based on the cellValue argument.
+	 * @param  {Number} cellValue Value from the this.props.screen array.
+	 * @return {String}      CSS class based on cellValue argument.
 	 * input:	0		1		2		3		4		5
 	 * output:	wall	floor	player	enemy	weapon	health
 	 */
-	getCellClass(cell) {
-		switch (cell) {
-			case 0:
-				return 'wall';
-			case 1:
-				return 'floor';
-			case 2:
-				return 'player';
-			case 3:
-				return 'enemy';
-			case 4:
-				return 'weapon';
-			case 5:
-				return 'health';
-		}
+	getCellClass(cellValue) {
+		return classes[cellValue];
 	}
 
 	/**
@@ -34,8 +29,8 @@ class Screen extends Component {
 	createScreen() {
 		let width = this.props.screen.length;
 		let screen = this.props.screen.map((row, rowId) => {
-			row = row.map((cell, cellId) => {
-				let cellClass = 'screen-cell ' + this.getCellClass(cell);
+			row = row.map((cellValue, cellId) => {
+				let cellClass = 'screen-cell ' + this.getCellClass(cellValue);
 				return (
 					<span id={`x-${cellId}_y-${rowId}`} key={cellId + (rowId * width)} className={cellClass}>
 					</span>

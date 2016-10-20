@@ -1,9 +1,10 @@
 $wall-bg: #666666;
-$floor-bg: #DDDDDD;
+$floor-bg: #EEEEEE;
 $player-bg: #2222AA;
 $enemy-bg: #AA2222;
 $weapon-bg: #AAAA22;
 $health-bg: #22AA22;
+$darkness-bg: #000000;
 
 @mixin flex($direction: row, $wrap: wrap) {
 	display: -ms-Flexbox;
