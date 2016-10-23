@@ -4,7 +4,7 @@ const initialPlayer = {
 	wpn: { name: 'dagger', atk: 12 },
 	lvl: 1,
 	xp: 0,
-	x: 0,
+	x: 30,
 	y: 40,
 };
 
@@ -15,7 +15,7 @@ export default (state = initialPlayer, action) => {
 			break;
 		case 'MOVE':
 			return Object.assign({}, state, {
-				x: state.x = action.xChange,
+				x: state.x + action.xChange,
 				y: state.y + action.yChange
 			});
 			break;

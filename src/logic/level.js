@@ -1,5 +1,10 @@
+import testRooms from './testRooms';
+
+
 // return a random integer between min and max.
 const getRandomInt = (min, max) => Math.floor(Math.random() * (max - min)) + min;
+
+const getCoinFlip = () => Math.floor(Math.random() * 2);
 
 /**
  * Generates a room object.
@@ -16,8 +21,8 @@ const makeRoom = ({x: inputX, y: inputY, w: inputWidth, h: inputHeight, random =
 	// Returns a random room.
 	if (random) {
 		const makeRandomRoom = () => {
-			let randWidth = getRandomInt(roomSize * .5, roomSize * 1.5);
-			let randHeight = getRandomInt(roomSize * .5, roomSize * 1.5);
+			let randWidth = getRandomInt(roomSize * .4, roomSize * 1.5);
+			let randHeight = getRandomInt(roomSize * .4, roomSize * 1.5);
 			return makeRoom({ x: x, y: y, w: randWidth, h: randHeight });
 		}
 		return makeRandomRoom();
@@ -42,7 +47,7 @@ const makeRoom = ({x: inputX, y: inputY, w: inputWidth, h: inputHeight, random =
  * @param  {Number} fillValue	Value the map will be filled with. Default: 0
  * @return {Array}				Two dimensional Array representing a map.
  */
-const createEmptyMap = ({ height = 100, width = 60, fillValue = 0 } = {}) => {
+export const createEmptyMap = ({ height = 100, width = 60, fillValue = 0 } = {}) => {
 	const mapArr = [];
 	for (let y = 0; y < height; y++) {
 		// Create an empty row.
@@ -112,7 +117,6 @@ const makeCorridor = (length, x, y, direction, { random = false, thickness = 1, 
 	return faceCorridor(makeRoom({ x, y, w: thickness, h: length }), direction);
 }
 
-
 /**
  * Returns a random point on a random room wall.
  * @param  {Object} room Room object to select wall from.
@@ -173,7 +177,7 @@ const randTranslateRoom = (room, translation) => {
  * @param  {Number} roomSize          Median room size.
  * @return {Object}                   Returns a an object with a corridor and newRoom property.
  */
-const connectRandRoom = ({x, y, direction}, roomSize) => {
+const getCorridorAndRoom = ({x, y, direction}, roomSize) => {
 	// Make a corridor of a random length at the wall coordinates facing in the direction.
 	const corridor = makeCorridor(roomSize / 2, x, y, direction, { random: true });
 
@@ -230,16 +234,6 @@ const roomIsInRect = (room, rect) => {
 		|| room.y2 > rect.y2);
 }
 
-/**
- * Compares two rooms to see if they intersect.
- * @param  {Object} room1
- * @param  {Object} room2
- * @return {Boolean}       True if they intersect.
- */
-const roomsIntersect = (room1, room2) => {
-	return !((room1.x > room2.x2 || room2.x > room1.x2)
-		|| (room1.y < room2.y2 || room2.y < room1.y2));
-}
 
 /**
  * Compares two rooms to see if they overlap.
@@ -248,7 +242,9 @@ const roomsIntersect = (room1, room2) => {
  * @return {Boolean}       True if they overlap.
  */
 const roomsOverlap = (room1, room2) => {
-	return (room1.x < room2.x2 && room1.x2 > room2.x && room1.y < room2.y2 && room1.y2 > room2.y);
+	// return (room1.x < room2.x2 && room1.x2 > room2.x && room1.y < room2.y2 && room1.y2 > room2.y);
+	return (room1.x < room2.x2 && room1.x2 > room2.x && room1.y < room2.y2 && room1.y2 > room2.y)
+	|| (room2.x < room1.x2 && room2.x2 > room1.x && room2.y < room1.y2 && room2.y2 > room1.y);
 }
 
 /**
@@ -275,53 +271,67 @@ const insertRoomArray = (roomArray, map) => {
 	return map;
 }
 
-
-// Returns true if the rooms do intersect with any value in the roomArray.
-const newRoomsIntersect = (corridorObj, roomObj, roomArrObj) => {
-	const doIntersect = (roomArrObj.some((currentValue) => {
-		return roomsIntersect(currentValue.corridor, corridorObj)
-			|| roomsIntersect(currentValue.corridor, roomObj)
-			|| roomsIntersect(currentValue.newRoom, corridorObj)
-			|| roomsIntersect(currentValue.newRoom, roomObj);
+/**
+ * Conducts the testFunc callback on the given corridor and room using Array.some on the roomArrObj.
+ * @param  {Object} corridorObj [description]
+ * @param  {[type]} roomObj     [description]
+ * @param  {[type]} roomArrObj  [description]
+ * @param  {[type]} testFunc    [description]
+ * @return {[type]}             [description]
+ */
+const compareRoomsToArray = (corridorObj, roomObj, roomArrObj, testFunc) => {
+	const testIsTrue = (roomArrObj.some((currentValue) => {
+		return testFunc(currentValue.corridor, corridorObj)
+			|| testFunc(currentValue.corridor, roomObj)
+			|| testFunc(currentValue.newRoom, corridorObj)
+			|| testFunc(currentValue.newRoom, roomObj);
 		}));
-	return doIntersect;
+	return testIsTrue;
 }
-// Returns true if the rooms do overlap with any value in the roomArray.
-const newRoomsOverlap = (corridorObj, roomObj, roomArrObj) => {
-	const doOverlap = (roomArrObj.some((currentValue) => {
-		return roomsOverlap(currentValue.corridor, corridorObj)
-			|| roomsOverlap(currentValue.corridor, roomObj)
-			|| roomsOverlap(currentValue.newRoom, corridorObj)
-			|| roomsOverlap(currentValue.newRoom, roomObj);
-	}));
-	return doOverlap;
-}
+
 const newRoomsAreOk = (corridorObj, roomObj, mapRectObj, roomArrObj) => {
 	if (!(roomIsInRect(corridorObj, mapRectObj) && roomIsInRect(roomObj, mapRectObj))) {
 		return false;
 	}
-	if (newRoomsIntersect(corridorObj, roomObj, roomArrObj)) {
-		return false;
-	}
-	if (newRoomsOverlap(corridorObj, roomObj, roomArrObj)) {
+	if (compareRoomsToArray(corridorObj, roomObj, roomArrObj, roomsOverlap)){
 		return false;
 	}
 	return true;
 }
 
 const pickRandomStartPoint = (roomArray) => {
-	let length = roomArray.length;
-	let coinToss = getRandomInt(0, 2);
-	let selectionIndex = getRandomInt(0, length);
+	const length = roomArray.length;
+	const coinToss = getRandomInt(0, 2);
+	const selectionIndex = getRandomInt(0, length);
 	if (coinToss === 1) {
 		return pickRandomWall(roomArray[selectionIndex].newRoom);
 	}
 	return pickRandomWall(roomArray[selectionIndex].corridor);
 }
 
-const getNextRandomRoom = (roomArray, roomSize) => {
-	let randomStartPoint = pickRandomStartPoint(roomArray);
-	return connectRandRoom(randomStartPoint, roomSize);
+const getRoomPair = (roomArray, roomSize) => {
+	const randomStartPoint = pickRandomStartPoint(roomArray);
+	const randomRoomPair = getCorridorAndRoom(randomStartPoint, roomSize);
+	return randomRoomPair;
+}
+
+const roomTest = (testObjArray) => {
+	testObjArray.forEach(({testId, scenario, room1, room2, expectedResults}) => {
+		const room1Obj = makeRoom(room1);
+		const room2Obj = makeRoom(room2);
+		console.log(`Test Number: ${testId}
+			Scenario: ${scenario}
+			overlap:
+				Outcome: ${roomsOverlap(room1Obj, room2Obj)}
+				Expected: ${expectedResults.overlap}
+			twoContainsOne
+				Outcome: ${roomIsInRect(room1Obj, room2Obj)}
+				Expected: ${expectedResults.twoContainsOne}
+			oneContainsTwo
+				Outcome: ${roomIsInRect(room2Obj, room1Obj)}
+				Expected: ${expectedResults.oneContainsTwo}
+			`);
+	});
 }
 
 /**
@@ -332,7 +342,10 @@ const getNextRandomRoom = (roomArray, roomSize) => {
  * @param  {Number} roomCount Desired number of rooms on the generated map.
  * @return {Object}           Generated Map
  */
-export const generateRandomMap = ({ height = 80, width = 60, roomSize = 9, roomCount = 25 } = {}) => {
+export const generateRandomMap = ({ height = 80, width = 60, roomSize = 10, roomCount = 30 } = {}) => {
+	// testing function
+	// roomTest(testRooms);
+
 	// Generate a map full of walls to start.
 	let map = createEmptyMap({height, width});
 	const mapRect = makeRoom({ x: 0, y: 0, w: width, h: height});
@@ -341,20 +354,26 @@ export const generateRandomMap = ({ height = 80, width = 60, roomSize = 9, roomC
 	const roomArr = [];
 
 	// Generate the starting room.
-	const mainRoomSize = 10;
+	const mainRoomSize = Math.floor(roomSize * 1.1);
+	const originX = Math.floor((width / 2) - (mainRoomSize / 2));
+	const originY = Math.floor((height / 2) - (mainRoomSize / 2));
 	roomArr.push({
-		corridor: makeRoom({ x: ((width / 2) - (mainRoomSize / 2)), y: ((height / 2) - (mainRoomSize / 2)), w: 0, h:0 }),
-		newRoom: makeRoom({ x: ((width / 2) - (mainRoomSize / 2)), y: ((height / 2) - (mainRoomSize / 2)), roomSize: mainRoomSize, random: true }),
+		corridor: makeRoom({ x: originX, y: originY, w: 0, h:0 }),
+		newRoom: makeRoom({ x: originX, y: originY, roomSize: mainRoomSize, random: true }),
 	});
 
 	// Tracks the number of attempts to prevent an infinite loop.
 	const attemptCount = (() => {
 		let count = 0;
+		let maxAttempts;
 		return {
-			countUp() {
-				count += 1;
+			add(amount) {
+				count += amount;
 			},
-			lessThan(maxAttempts) {
+			setMaxAttempts(max) {
+				maxAttempts = max;
+			},
+			lessThanMax() {
 				return count < maxAttempts;
 			},
 			getCount() {
@@ -362,11 +381,14 @@ export const generateRandomMap = ({ height = 80, width = 60, roomSize = 9, roomC
 			},
 		};
 	})();
+
 	// Fill roomArr with corridors and rooms until either the roomCount or attemptCount is met.
-	while (roomArr.length <= roomCount && attemptCount.lessThan(roomCount * 15)) {
-		attemptCount.countUp();
+	attemptCount.setMaxAttempts(roomCount * 25);
+	while (roomArr.length <= roomCount && attemptCount.lessThanMax()) {
+		attemptCount.add(1);
+
 		// Get a random corridor and newRoom.
-		let nextRoomPair = getNextRandomRoom(roomArr, roomSize);
+		let nextRoomPair = getRoomPair(roomArr, roomSize);
 		// Only push the new rooms and corridor if they within the map.
 		if (newRoomsAreOk(nextRoomPair.corridor, nextRoomPair.newRoom, mapRect, roomArr)) {
 			roomArr.push(nextRoomPair);
@@ -375,6 +397,23 @@ export const generateRandomMap = ({ height = 80, width = 60, roomSize = 9, roomC
 
 	// puts rooms into the map array
 	map = Object.assign([], insertRoomArray(roomArr, map));
-
+	map = map.map(row => {
+		let newRow = row.map(cell => {
+			if (cell === 1) {
+				let rand = getRandomInt(0, 1000);
+				if (rand <= 3) {
+					return 3;
+				}
+				if (rand === 4) {
+					return 4;
+				}
+				if (rand === 5) {
+					return 5;
+				}
+			}
+			return cell;
+		});
+		return newRow;
+	});
 	return map;
 }

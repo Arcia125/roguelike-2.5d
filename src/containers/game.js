@@ -9,8 +9,6 @@ import {
 	move,
 } from '../actions';
 
-// containers
-
 // components
 import Hud from '../components/hud';
 import Screen from '../components/screen';
@@ -21,28 +19,126 @@ import {
 } from '../logic/level';
 
 
+
+// direction variables
+const dir = {
+	up: {
+		xDir: 0,
+		yDir: -1,
+	},
+	right: {
+		xDir: 1,
+		yDir: 0,
+	},
+	down: {
+		xDir: 0,
+		yDir: 1,
+	},
+	left: {
+		xDir: -1,
+		yDir: 0,
+	},
+};
+
+// key variables
+const moves = {
+	'87': dir.up,
+	'38': dir.up,
+	'68': dir.right,
+	'39': dir.right,
+	'83': dir.down,
+	'40': dir.down,
+	'65': dir.left,
+	'37': dir.left,
+};
+
 class Game extends Component {
 	componentWillMount() {
-		this.props.updateBoard(generateRandomMap());
-		window.addEventListener('keydown', (keyEvent) => {
-			if (keyEvent.keyCode == 87 || keyEvent.keyCode == 38) {
-				this.props.move(0, -1);
-			} else if (keyEvent.keyCode == 65 || keyEvent.keyCode == 37) {
-				this.props.move(-1, 0);
-			} else if (keyEvent.keyCode == 83 || keyEvent.keyCode == 40) {
-				this.props.move(0, 1);
-			} else if (keyEvent.keyCode == 68 || keyEvent.keyCode == 39) {
-				this.props.move(1, 0);
-			} else if (keyEvent.keyCode == 85) {
-				this.props.updateBoard(generateRandomMap());
-				// console.log(`updating map because you pressed U`);
-			}
-		}, false);
+		this.startLevel();
+		window.addEventListener('keydown', this.debounce(this.handleKeys.bind(this), 1), true);
+	}
+
+	debounce(func, delay) {
+		let timer = null;
+		return function(...args) {
+			let context = this;
+			clearTimeout(timer);
+			timer = setTimeout(function() {
+				func.apply(context, args);
+			}, delay);
+		};
+	}
+
+	handleKeys(keyEvent) {
+		if (keyEvent.keyCode == 85) {
+			this.props.updateBoard(generateRandomMap());
+			// console.log(`updating map because you pressed U`);
+		}
+		const move = moves[keyEvent.keyCode];
+		if (move) {
+			this.checkMove(move);
+		}
+	}
+
+	startLevel() {
+		let newMap = generateRandomMap();
+		const { enemies, weapons, health } = this.getObjectsFromMap(newMap);
+		console.log(enemies);
+		console.log(weapons);
+		console.log(health);
+		this.props.updateBoard(newMap);
+	}
+
+	getObjectsFromMap(generatedMap) {
+		let enemies = [];
+		let weapons = [];
+		let health = [];
+		generatedMap.forEach((row, rowID) => {
+			row.forEach((cell, cellID) => {
+				if (cell === 3) {
+					enemies.push({ entityType: 'enemy', x: cellID, y: rowID, hp: 40, atk: 12 });
+				} else if (cell === 4) {
+					weapons.push({ x: cellID, y: rowID });
+				} else if (cell === 5) {
+					health.push({ x: cellID, y: rowID });
+				}
+			});
+		});
+		return {
+			enemies,
+			weapons,
+			health
+		};
+	}
+
+	checkMove({ xDir, yDir }) {
+		const newPosX = this.props.player.x + xDir;
+		const newPosY = this.props.player.y + yDir;
+		const valueAtPosition = this.getCell({
+			x: newPosX,
+			y: newPosY,
+		});
+		if (valueAtPosition === 1) {
+			this.props.move(xDir, yDir);
+		}
+	}
+
+	getCell({ x, y }) {
+		if (this.props.board[y]) {
+			return this.props.board[y][x];
+		}
 	}
 
 	calculateAtk(lvl, wpnDmg = 12) {
 		let atk = (12 * lvl) + wpnDmg;
 		return atk;
+	}
+
+	convertBoardToScreen(board, player) {
+		// Create a copy of the board to prevent modification of the original.
+		let tempBoard = board.map(row => row.slice());
+		tempBoard[player.y][player.x] = 2;
+		return tempBoard;
 	}
 
 	/**
@@ -52,7 +148,8 @@ class Game extends Component {
 	 */
 	getScreen() {
 		let player = this.props.player;
-		let board = Object.assign([], this.props.board);
+		let screen = this.convertBoardToScreen(this.props.board, player);
+
 		// Sets camera bounding box around player.
 		let offset = 25;
 
@@ -67,11 +164,11 @@ class Game extends Component {
 		if (camera.top < 0) {
 			camera.top = 0;
 			camera.bottom = camera.top + (2 * offset);
-		} else if (camera.bottom > board.length) {
-			camera.bottom = board.length;
+		} else if (camera.bottom > screen.length) {
+			camera.bottom = screen.length;
 			camera.top = camera.bottom - (2 * offset);
 		}
-		return board.slice(camera.top, camera.bottom);
+		return screen.slice(camera.top, camera.bottom);
 	}
 
 	render() {

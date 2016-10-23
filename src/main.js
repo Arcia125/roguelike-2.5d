@@ -10,11 +10,13 @@ import AllReducers from './reducers';
 
 import Game from './containers/game.js';
 
-let store = createStore(AllReducers, {});
+const startGame = () => {
+	let store = createStore(AllReducers, {});
+	const appAnchor = document.getElementById('app-anchor');
+	ReactDOM.render(
+		<Provider store={store} >
+		<Game />
+		</Provider>, appAnchor);
+}
 
-const appAnchor = document.getElementById('app-anchor');
-
-ReactDOM.render(
-	<Provider store={store} >
-	<Game />
-	</Provider>, appAnchor);
+window.addEventListener('DOMContentLoaded', startGame, false);
