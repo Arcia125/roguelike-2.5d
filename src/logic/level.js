@@ -21,8 +21,8 @@ const makeRoom = ({x: inputX, y: inputY, w: inputWidth, h: inputHeight, random =
 	// Returns a random room.
 	if (random) {
 		const makeRandomRoom = () => {
-			let randWidth = getRandomInt(roomSize * .4, roomSize * 1.5);
-			let randHeight = getRandomInt(roomSize * .4, roomSize * 1.5);
+			const randWidth = getRandomInt(roomSize * .4, roomSize * 1.5);
+			const randHeight = getRandomInt(roomSize * .4, roomSize * 1.5);
 			return makeRoom({ x: x, y: y, w: randWidth, h: randHeight });
 		}
 		return makeRandomRoom();
@@ -84,8 +84,8 @@ const faceRoom = (room, direction) => {
 }
 
 const faceCorridor = (corridor, direction) => {
-	let longer = Math.max(corridor.height, corridor.width);
-	let shorter = Math.min(corridor.height, corridor.width);
+	const longer = Math.max(corridor.height, corridor.width);
+	const shorter = Math.min(corridor.height, corridor.width);
 	if (direction === 'south') {
 		return makeRoom({ x: corridor.x, y: corridor.y, w: shorter, h: longer });
 	} else if (direction === 'north') {
@@ -111,7 +111,7 @@ const faceCorridor = (corridor, direction) => {
  */
 const makeCorridor = (length, x, y, direction, { random = false, thickness = 1, minLength = 2 } = {}) => {
 	if (random) {
-		let randLength = getRandomInt(minLength, length);
+		const randLength = getRandomInt(minLength, length);
 		return makeCorridor(randLength, x, y, direction, thickness, minLength);
 	}
 	return faceCorridor(makeRoom({ x, y, w: thickness, h: length }), direction);
@@ -124,7 +124,7 @@ const makeCorridor = (length, x, y, direction, { random = false, thickness = 1, 
  */
 const pickRandomWall = (room) => {
 	// Gets a random wall side number.
-	let wall = getRandomInt(0, 4);
+	const wall = getRandomInt(0, 4);
 
 	// 0 = north, 1 = east, 2 = south, 3 = west
 	if (wall === 0) {
@@ -157,16 +157,16 @@ const pickRandomWall = (room) => {
 
 const randTranslateRoom = (room, translation) => {
 	if (translation === 'north') {
-		let distance = getRandomInt(0, room.height);
+		const distance = getRandomInt(0, room.height);
 		return makeRoom({ x: room.x, y: room.y - distance, w: room.width, h: room.height });
 	} else if (translation === 'east') {
-		let distance = getRandomInt(0, room.width);
+		const distance = getRandomInt(0, room.width);
 		return makeRoom({ x: room.x + distance, y: room.y, w: room.width, h: room.height });
 	} else if (translation === 'south') {
-		let distance = getRandomInt(0, room.height);
+		const distance = getRandomInt(0, room.height);
 		return makeRoom({ x: room.x, y: room.y + distance, w: room.width, h: room.height });
 	} else if (translation === 'west') {
-		let distance = getRandomInt(0, room.width);
+		const distance = getRandomInt(0, room.width);
 		return makeRoom({ x: room.x - distance, y: room.y, w: room.width, h: room.height });
 	}
 }
@@ -213,7 +213,7 @@ const getCorridorAndRoom = ({x, y, direction}, roomSize) => {
 		y: connectY,
 		translation, } = getConnectPoint();
 
-	let newRoom = randTranslateRoom(faceRoom(makeRoom({ x: connectX, y: connectY, random: true, roomSize: roomSize }), direction), translation);
+	const newRoom = randTranslateRoom(faceRoom(makeRoom({ x: connectX, y: connectY, random: true, roomSize: roomSize }), direction), translation);
 
 	return {
 		corridor,
@@ -388,7 +388,7 @@ export const generateRandomMap = ({ height = 80, width = 60, roomSize = 10, room
 		attemptCount.add(1);
 
 		// Get a random corridor and newRoom.
-		let nextRoomPair = getRoomPair(roomArr, roomSize);
+		const nextRoomPair = getRoomPair(roomArr, roomSize);
 		// Only push the new rooms and corridor if they within the map.
 		if (newRoomsAreOk(nextRoomPair.corridor, nextRoomPair.newRoom, mapRect, roomArr)) {
 			roomArr.push(nextRoomPair);
@@ -398,9 +398,9 @@ export const generateRandomMap = ({ height = 80, width = 60, roomSize = 10, room
 	// puts rooms into the map array
 	map = Object.assign([], insertRoomArray(roomArr, map));
 	map = map.map(row => {
-		let newRow = row.map(cell => {
+		const newRow = row.map(cell => {
 			if (cell === 1) {
-				let rand = getRandomInt(0, 1000);
+				const rand = getRandomInt(0, 1000);
 				if (rand <= 3) {
 					return 3;
 				}

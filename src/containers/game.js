@@ -7,7 +7,10 @@ import {
 	dealDmg,
 	updateBoard,
 	move,
-	addEntities,
+	damageEnemy,
+	addWeapon,
+	addEnemy,
+	addHealth,
 } from '../actions';
 
 // components
@@ -53,6 +56,18 @@ const moves = {
 	'37': dir.left,
 };
 
+const config = {
+	map: {
+		height: 80,
+		width: 60,
+		roomSize: 10,
+		roomCount: 30,
+	},
+	camera: {
+		offset: 25,
+	},
+};
+
 class Game extends Component {
 	componentWillMount() {
 		this.startLevel();
@@ -62,7 +77,7 @@ class Game extends Component {
 	debounce(func, delay) {
 		let timer = null;
 		return function(...args) {
-			let context = this;
+			const context = this;
 			clearTimeout(timer);
 			timer = setTimeout(function() {
 				func.apply(context, args);
@@ -80,55 +95,49 @@ class Game extends Component {
 		}
 	}
 
-
 	startLevel() {
-		let newMap = generateRandomMap();
-		const entities = this.getObjectsFromMap(newMap);
-		this.props.addEntities(entities);
+		const newMap = generateRandomMap(config.map);
+		this.getObjectsFromMap(newMap);
 		this.props.updateBoard(newMap);
 	}
 
 	getObjectsFromMap(generatedMap) {
-		let enemies = [];
-		let weapons = [];
-		let health = [];
-		let enemyID = 0;
-		let weaponID = 0;
-		let healthID = 0;
 		generatedMap.forEach((row, rowID) => {
 			row.forEach((cell, cellID) => {
 				if (cell === 3) {
-					enemies.push({ entityType: 'enemy', id: enemyID, x: cellID, y: rowID, hp: 40, atk: 12 });
-					enemyID += 1;
+					this.props.addEnemy({ x: cellID, y: rowID, hp: 40, atk: 12, });
 				} else if (cell === 4) {
-					weapons.push({ entityType: 'weapon', id: weaponID, x: cellID, y: rowID });
-					weaponID += 1;
+					this.props.addWeapon({ x: cellID, y: rowID, });
 				} else if (cell === 5) {
-					health.push({ entityType: 'health', id: healthID, x: cellID, y: rowID });
-					healthID += 1;
-
+					this.props.addHealth({ x: cellID, y: rowID, });
 				}
 			});
 		});
-		return {
-			enemies,
-			weapons,
-			health
-		};
 	}
 
 	getEnemyAt(x, y) {
-		const enemies = this.props.entities.enemies;
+		const enemies = this.props.enemies;
 		const targetEnemy = enemies.find(enemy => enemy.x === x && enemy.y === y);
 		if (targetEnemy !== undefined) {
-			return targetEnemy
+			return targetEnemy;
 		}
 		throw new Error(`getEnemyAt(): Enemy not found at x:${x},y:${y}`);
 	}
 
 	attackEnemy(enemy) {
 		const player = this.props.player;
+		const playerAtk = this.calculateAtk(player.lvl, player.wpn.atk);
 		console.log(enemy);
+		console.log(playerAtk);
+		this.props.damageEnemy(enemy, playerAtk);
+		if (enemy.hp - playerAtk < 0) {
+			console.log('The enemy is dead');
+		}
+		console.log(enemy);
+
+	}
+
+	removeEnemy(enemy) {
 
 	}
 
@@ -157,13 +166,17 @@ class Game extends Component {
 	}
 
 	calculateAtk(lvl, wpnDmg = 12) {
-		let atk = (12 * lvl) + wpnDmg;
+		const atk = (12 * lvl) + wpnDmg;
 		return atk;
+	}
+
+	copyMap(board) {
+		return board.map(row => row.slice());
 	}
 
 	convertBoardToScreen(board, player) {
 		// Create a copy of the board to prevent modification of the original.
-		let tempBoard = board.map(row => row.slice());
+		let tempBoard = this.copyMap(board);
 		tempBoard[player.y][player.x] = 2;
 		return tempBoard;
 	}
@@ -174,32 +187,29 @@ class Game extends Component {
 	 * component to render.
 	 */
 	getScreen() {
-		let player = this.props.player;
-		let screen = this.convertBoardToScreen(this.props.board, player);
-
-		// Sets camera bounding box around player.
-		let offset = 25;
+		const player = this.props.player;
+		const screen = this.convertBoardToScreen(this.props.board, player);
 
 		// Object representing the camera bounding box around the
 		// player.
 		let camera = {
-			top: player.y - offset,
-			bottom: player.y + offset
+			top: player.y - config.camera.offset,
+			bottom: player.y + config.camera.offset, 
 		};
 
 		// Keep the camera within the board.
 		if (camera.top < 0) {
 			camera.top = 0;
-			camera.bottom = camera.top + (2 * offset);
+			camera.bottom = camera.top + (2 * config.camera.offset);
 		} else if (camera.bottom > screen.length) {
 			camera.bottom = screen.length;
-			camera.top = camera.bottom - (2 * offset);
+			camera.top = camera.bottom - (2 * config.camera.offset);
 		}
 		return screen.slice(camera.top, camera.bottom);
 	}
 
 	render() {
-		let player = this.props.player;
+		const player = this.props.player;
 		return (
 			<div className='game'>
 				<Hud
@@ -219,9 +229,11 @@ class Game extends Component {
 
 const mapStateToProps = (state) => {
 	return {
-		entities: state.entities,
 		player: state.player,
-		board: state.board
+		board: state.board,
+		weapons: state.weapons,
+		enemies: state.enemies,
+		healths: state.healths,
 	};
 }
 
@@ -230,7 +242,10 @@ const mapDispatchToProps = (dispatch) => {
 		dealDmg,
 		updateBoard,
 		move,
-		addEntities,
+		damageEnemy,
+		addWeapon,
+		addEnemy,
+		addHealth,
 	}, dispatch)
 }
 

@@ -11,15 +11,16 @@ const initialPlayer = {
 export default (state = initialPlayer, action) => {
 	switch (action.type) {
 		case 'TAKE_DMG':
-			return action.amount;
-			break;
+			return Object.assign({}, state, {
+				hp: state.hp - action.amount,
+			});
 		case 'MOVE':
 			return Object.assign({}, state, {
 				x: state.x + action.xChange,
 				y: state.y + action.yChange
 			});
-			break;
+		default:
+			return state;
 
 	}
-	return state;
 }

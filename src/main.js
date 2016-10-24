@@ -11,7 +11,7 @@ import AllReducers from './reducers';
 import Game from './containers/game.js';
 
 const startGame = () => {
-	let store = createStore(AllReducers, {});
+	const store = createStore(AllReducers, {});
 	const appAnchor = document.getElementById('app-anchor');
 	ReactDOM.render(
 		<Provider store={store} >
@@ -20,3 +20,6 @@ const startGame = () => {
 }
 
 window.addEventListener('DOMContentLoaded', startGame, false);
+window.addEventListener('keydown', function(e) {
+	e.preventDefault();
+}, false);
