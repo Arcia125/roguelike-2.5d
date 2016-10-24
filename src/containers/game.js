@@ -7,6 +7,7 @@ import {
 	dealDmg,
 	updateBoard,
 	move,
+	addEntities,
 } from '../actions';
 
 // components
@@ -72,7 +73,6 @@ class Game extends Component {
 	handleKeys(keyEvent) {
 		if (keyEvent.keyCode == 85) {
 			this.props.updateBoard(generateRandomMap());
-			// console.log(`updating map because you pressed U`);
 		}
 		const move = moves[keyEvent.keyCode];
 		if (move) {
@@ -80,12 +80,11 @@ class Game extends Component {
 		}
 	}
 
+
 	startLevel() {
 		let newMap = generateRandomMap();
-		const { enemies, weapons, health } = this.getObjectsFromMap(newMap);
-		console.log(enemies);
-		console.log(weapons);
-		console.log(health);
+		const entities = this.getObjectsFromMap(newMap);
+		this.props.addEntities(entities);
 		this.props.updateBoard(newMap);
 	}
 
@@ -93,14 +92,21 @@ class Game extends Component {
 		let enemies = [];
 		let weapons = [];
 		let health = [];
+		let enemyID = 0;
+		let weaponID = 0;
+		let healthID = 0;
 		generatedMap.forEach((row, rowID) => {
 			row.forEach((cell, cellID) => {
 				if (cell === 3) {
-					enemies.push({ entityType: 'enemy', x: cellID, y: rowID, hp: 40, atk: 12 });
+					enemies.push({ entityType: 'enemy', id: enemyID, x: cellID, y: rowID, hp: 40, atk: 12 });
+					enemyID += 1;
 				} else if (cell === 4) {
-					weapons.push({ x: cellID, y: rowID });
+					weapons.push({ entityType: 'weapon', id: weaponID, x: cellID, y: rowID });
+					weaponID += 1;
 				} else if (cell === 5) {
-					health.push({ x: cellID, y: rowID });
+					health.push({ entityType: 'health', id: healthID, x: cellID, y: rowID });
+					healthID += 1;
+
 				}
 			});
 		});
@@ -109,6 +115,21 @@ class Game extends Component {
 			weapons,
 			health
 		};
+	}
+
+	getEnemyAt(x, y) {
+		const enemies = this.props.entities.enemies;
+		const targetEnemy = enemies.find(enemy => enemy.x === x && enemy.y === y);
+		if (targetEnemy !== undefined) {
+			return targetEnemy
+		}
+		throw new Error(`getEnemyAt(): Enemy not found at x:${x},y:${y}`);
+	}
+
+	attackEnemy(enemy) {
+		const player = this.props.player;
+		console.log(enemy);
+
 	}
 
 	checkMove({ xDir, yDir }) {
@@ -120,6 +141,12 @@ class Game extends Component {
 		});
 		if (valueAtPosition === 1) {
 			this.props.move(xDir, yDir);
+		} else if (valueAtPosition === 3) {
+			this.attackEnemy(this.getEnemyAt(newPosX, newPosY));
+		} else if (valueAtPosition === 4) {
+			console.log('picked up a weapon');
+		} else if (valueAtPosition === 5) {
+			console.log('picked up health');
 		}
 	}
 
@@ -176,14 +203,14 @@ class Game extends Component {
 		return (
 			<div className='game'>
 				<Hud
-				hp={player.hp}
-				wpn={player.wpn.name}
-				atk={this.calculateAtk(player.lvl, player.wpn.atk)}
-				lvl={player.lvl}
-				xp={player.xp}
+					hp={player.hp}
+					wpn={player.wpn.name}
+					atk={this.calculateAtk(player.lvl, player.wpn.atk)}
+					lvl={player.lvl}
+					xp={player.xp}
 				/>
 				<Screen
-				screen={this.getScreen()}
+					screen={this.getScreen()}
 				/>
 			</div>
 			);
@@ -203,6 +230,7 @@ const mapDispatchToProps = (dispatch) => {
 		dealDmg,
 		updateBoard,
 		move,
+		addEntities,
 	}, dispatch)
 }
 

@@ -3,4 +3,5 @@
 *.sublime-project
 *.sublime-workspace
 *.xcf
-npm-debug.log.*
+npm-debug.log*
+*.log
