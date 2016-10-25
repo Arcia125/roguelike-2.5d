@@ -36,10 +36,13 @@ const board = (state = initialBoard, action) => {
 			return Object.assign([], updatePosition(state, action.health.x, action.health.y, action.fillValue));
 		case 'RESET_STATE':
 			return Object.assign([], initialBoard);
-		case 'SET_PLAYER_POSITION':
+		case 'SET_PLAYER_POSITION': {
 			let newState = updatePosition(state, action.x, action.y, 2);
-			newState[action.oldY][action.oldX] = 1;
+			if (newState[action.oldY][action.oldX] !== 0) {
+				newState[action.oldY][action.oldX] = 1
+			}
 			return Object.assign([], newState);
+		}
 		default:
 			return state;
 	}

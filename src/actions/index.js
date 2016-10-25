@@ -1,14 +1,6 @@
 /*
  * action creators
  */
-export const dealDmg = (target, amount) => {
-	console.log(`${amount} damage was dealt to ${target}!`);
-	return {
-		type: 'DEAL_DMG',
-		target,
-		amount,
-	};
-}
 
 export const takeDamage = amount => {
 	console.log(`Player sustained ${amount} damage!`);
@@ -47,8 +39,6 @@ export const updateBoard = board => ({ type: 'UPDATE_BOARD', board, });
 
 export const updatePosition = (x, y, fillValue) => ({ type: 'UPDATE_POSITION', x, y, fillValue });
 
-export const move = (x, y) => ({ type: 'MOVE', x, y, });
-
 export const setPlayerPosition = (oldX, oldY, x, y) => {
 	return { type: 'SET_PLAYER_POSITION', oldX, oldY, x, y, };
 }
@@ -66,6 +56,6 @@ export const addEnemy = ({ x, y, hp, atk, lvl }) => ({ type: 'ADD_ENEMY', id: ne
 export const killEnemy = (enemy, fillValue) => ({ type: 'REMOVE_ENEMY', enemy, fillValue });
 
 let nextHealthId = 0;
-export const addHealth = ({ x, y, lvl, }) => ({ type: 'ADD_HEALTH', id: nextHealthId++, x, y, lvl, });
+export const addHealth = ({ x, y, healValue, }) => ({ type: 'ADD_HEALTH', id: nextHealthId++, x, y, healValue, });
 
 export const resetState = () => ({ type: 'RESET_STATE', });

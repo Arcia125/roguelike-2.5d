@@ -8,7 +8,6 @@ import {
 	setGameOver,
 	updateBoard,
 	updatePosition,
-	move,
 	setPlayerPosition,
 	damageEnemy,
 	takeDamage,
@@ -117,7 +116,7 @@ class Game extends Component {
 				} else if (cell === config.fillValues.weapon) {
 					this.props.addWeapon(Object.assign({ x: cellID, y: rowID, }, config.weapons[levelNumber]));
 				} else if (cell === config.fillValues.health) {
-					this.props.addHealth({ x: cellID, y: rowID, healAmount: 40 + (levelNumber * 10), });
+					this.props.addHealth({ x: cellID, y: rowID, healValue: 40 + (levelNumber * 10), });
 				}
 			});
 		});
@@ -312,7 +311,6 @@ const mapDispatchToProps = (dispatch) => {
 		setGameOver,
 		updateBoard,
 		updatePosition,
-		move,
 		setPlayerPosition,
 		damageEnemy,
 		takeDamage,

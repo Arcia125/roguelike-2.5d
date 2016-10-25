@@ -7,7 +7,7 @@ const health = (state = {}, action) => {
 				id: action.id,
 				x: action.x,
 				y: action.y,
-				lvl: action.lvl,
+				healValue: action.healValue,
 			};
 		default:
 			return state;
@@ -22,6 +22,8 @@ const healths = (state = initialState, action) => {
 			...state,
 			health(undefined, action),
 		]);
+		case 'PICKUP_HEALTH':
+			return Object.assign([], state.filter(h => h.id !== action.health.id));
 		case 'RESET_STATE':
 			return Object.assign([], initialState);
 		default:
