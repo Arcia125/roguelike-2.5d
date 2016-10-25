@@ -6,13 +6,13 @@ const initialGameState = {
 const gameState = (state = initialGameState, action) => {
 	switch(action.type) {
 		case 'SET_MAP_LEVEL':
-			return Object.assign({}, state, {
-				level: action.level,
-			});
+			return Object.assign({}, state, { level: action.level });
 		case 'SET_GAME_OVER':
 			return Object.assign({}, state, {
 				gameOver: action.gameOver,
 			});
+		case 'RESET_STATE':
+			return Object.assign({}, initialGameState);
 		default:
 			return state;
 	}

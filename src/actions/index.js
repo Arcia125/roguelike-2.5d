@@ -27,11 +27,11 @@ export const setGameOver = gameOver => {
 	};
 }
 
-export const healDamage = amount => ({ type: 'HEAL_DMG', amount, });
+export const pickupHealth = (health, fillValue) => ({ type: 'PICKUP_HEALTH', health, fillValue, });
 
-export const changeWpn = ({ atk, name, upgradeLvl }) => {
-	console.log(`You picked up the weapon ${name}!`);
-	return { type: 'CHANGE_WPN', atk, name, upgradeLvl, };
+export const pickupWeapon = (weapon, fillValue) => {
+	console.log(`You picked up the weapon ${weapon.name}!`);
+	return { type: 'PICKUP_WEAPON', weapon, fillValue };
 }
 
 export const gainLevel = () => {
@@ -45,22 +45,27 @@ export const setXp = amount => {
 
 export const updateBoard = board => ({ type: 'UPDATE_BOARD', board, });
 
-export const move = (xChange, yChange) => ({ type: 'MOVE', xChange, yChange, });
+export const updatePosition = (x, y, fillValue) => ({ type: 'UPDATE_POSITION', x, y, fillValue });
 
-export const setPlayerPosition = (x, y) => {
-	return { type: 'SET_PLAYER_POSITION', x, y };
+export const move = (x, y) => ({ type: 'MOVE', x, y, });
+
+export const setPlayerPosition = (oldX, oldY, x, y) => {
+	return { type: 'SET_PLAYER_POSITION', oldX, oldY, x, y, };
 }
 
 export const damageEnemy = (enemy, amount) => ({ type: 'DAMAGE_ENEMY', enemy, amount, });
 
 let nextWeaponId = 0;
-export const addWeapon = ({ x, y, lvl }) => ({ type: 'ADD_WEAPON', id: nextWeaponId++, x, y, lvl,  });
+export const addWeapon = weapon => ({ type: 'ADD_WEAPON', id: nextWeaponId++, weapon, });
+
+export const removeAllWeapons = weaponFillValue => ({ type: 'REMOVE_ALL_WEAPONS', fillValue: weaponFillValue, });
 
 let nextEnemyId = 0;
 export const addEnemy = ({ x, y, hp, atk, lvl }) => ({ type: 'ADD_ENEMY', id: nextEnemyId++, x, y, hp, atk, lvl, });
 
-export const removeEnemy = id => ({ type: 'REMOVE_ENEMY', id });
+export const killEnemy = (enemy, fillValue) => ({ type: 'REMOVE_ENEMY', enemy, fillValue });
 
 let nextHealthId = 0;
 export const addHealth = ({ x, y, lvl, }) => ({ type: 'ADD_HEALTH', id: nextHealthId++, x, y, lvl, });
 
+export const resetState = () => ({ type: 'RESET_STATE', });

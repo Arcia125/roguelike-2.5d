@@ -7,18 +7,21 @@ import {
 	setMapLevel,
 	setGameOver,
 	updateBoard,
+	updatePosition,
 	move,
 	setPlayerPosition,
 	damageEnemy,
 	takeDamage,
-	healDamage,
-	changeWpn,
+	pickupHealth,
+	pickupWeapon,
 	setXp,
 	gainLevel,
 	addWeapon,
+	removeAllWeapons,
 	addEnemy,
-	removeEnemy,
+	killEnemy,
 	addHealth,
+	resetState,
 } from '../actions';
 
 // components
@@ -29,7 +32,8 @@ import Screen from '../components/screen';
 import level from '../logic/level';
 import rng from '../logic/randomNumberGenerator';
 
-
+// config
+import config from './gameConfig';
 
 // direction variables
 const dir = {
@@ -63,51 +67,9 @@ const moves = {
 	'37': dir.left,
 };
 
-const config = {
-	map: {
-		height: 80,
-		width: 60,
-		roomSize: 12,
-		roomCount: 25,
-	},
-	camera: {
-		offset: 25,
-	},
-
-	weapons: [
-		{
-			name: 'dagger',
-			atk: 12,
-			upgradeLvl: 1,
-		},
-		{
-			name: 'sword',
-			atk: 28,
-			upgradeLvl: 2,
-		},
-		{
-			name: 'great sword',
-			atk: 36,
-			upgradeLvl: 3,
-		},
-		{
-			name: 'katana',
-			atk: 48,
-			upgradeLvl: 4,
-		},
-		{
-			name: 'Molten Dagger',
-			atk: 60,
-			upgradeLvl: 5,
-		},
-	],
-	baseXpBreakpoint: 40,
-};
-
 class Game extends Component {
 	componentWillMount() {
-		this.props.setMapLevel(1);
-		this.startLevel(this.props.gameState.level);
+		this.startLevel(1);
 		window.addEventListener('keydown', this.debounce(this.handleKeys.bind(this), 1), true);
 	}
 
@@ -124,8 +86,7 @@ class Game extends Component {
 
 	handleKeys(keyEvent) {
 		if (keyEvent.keyCode == 85) {
-			this.props.setMapLevel(1);
-			this.startLevel(this.props.gameState.level);
+			this.startLevel(1);
 		}
 		const move = moves[keyEvent.keyCode];
 		if (move) {
@@ -134,24 +95,29 @@ class Game extends Component {
 	}
 
 	startLevel(levelNumber) {
+		this.props.setMapLevel(levelNumber);
+		if (levelNumber === 1) {
+			this.props.resetState();
+		}
+		const player = this.props.player;
 		const maxMainRoomSize = config.map.roomSize * 1.5;
 		const randStartX = rng.getRandomInt(1, config.map.width - maxMainRoomSize);
 		const randStartY = rng.getRandomInt(1, config.map.height - maxMainRoomSize);
-		this.props.setPlayerPosition(randStartX, randStartY);
 		const newMap = level.generateRandomMap(randStartX, randStartY, config.map);
 		this.getObjectsFromMap(newMap, levelNumber);
 		this.props.updateBoard(newMap);
+		this.props.setPlayerPosition(player.x, player.y, randStartX, randStartY);
 	}
 
 	getObjectsFromMap(generatedMap, levelNumber) {
 		generatedMap.forEach((row, rowID) => {
 			row.forEach((cell, cellID) => {
-				if (cell === 3) {
+				if (cell === config.fillValues.enemy) {
 					this.props.addEnemy({ x: cellID, y: rowID, hp: 40, atk: 12, lvl: levelNumber, });
-				} else if (cell === 4) {
-					this.props.addWeapon({ x: cellID, y: rowID, lvl: levelNumber, });
-				} else if (cell === 5) {
-					this.props.addHealth({ x: cellID, y: rowID, lvl: levelNumber, });
+				} else if (cell === config.fillValues.weapon) {
+					this.props.addWeapon(Object.assign({ x: cellID, y: rowID, }, config.weapons[levelNumber]));
+				} else if (cell === config.fillValues.health) {
+					this.props.addHealth({ x: cellID, y: rowID, healAmount: 40 + (levelNumber * 10), });
 				}
 			});
 		});
@@ -171,7 +137,7 @@ class Game extends Component {
 		const enemyAtk = this.calculateAtk(enemy.lvl);
 		this.props.damageEnemy(enemy, playerAtk);
 		if (enemy.hp - playerAtk <= 0) {
-			this.removeEnemy(enemy, xDir, yDir);
+			this.killEnemy(enemy, xDir, yDir);
 			this.gainXp(enemy.lvl * 20);
 		}else {
 			this.props.takeDamage(enemyAtk);
@@ -181,13 +147,10 @@ class Game extends Component {
 		}
 	}
 
-	removeEnemy(enemy, xDir, yDir) {
-		this.props.removeEnemy(enemy.id);
-		this.props.move(xDir, yDir);
-		let map = this.copyMap(this.props.board);
-		map[enemy.y][enemy.x] = 1;
-		console.log(enemy.id);
-		this.props.updateBoard(map);
+	killEnemy(enemy) {
+		const player = this.props.player;
+		this.props.killEnemy(enemy, config.fillValues.floor);
+		this.props.setPlayerPosition(player.x, player.y, enemy.x, enemy.y);
 	}
 
 	getHealthAt(x, y) {
@@ -199,53 +162,46 @@ class Game extends Component {
 		throw new Error(`getHealthAt(): Health not found at x:${x},y:${y}`);
 	}
 
-	pickupHealth(health, xDir, yDir) {
+	receiveHealthPack(health) {
 		const player = this.props.player;
-		let healAmount = health.lvl * 40;
-		let map = this.copyMap(this.props.board);
-		map[health.y][health.x] = 1;
-		this.props.updateBoard(map);
-		this.props.healDamage(healAmount);
-		this.props.move(xDir, yDir);
+		this.props.pickupHealth(health, config.fillValues.floor);
+		this.props.setPlayerPosition(player.x, player.y, health.x, health.y);
 	}
 
 	getWeaponAt(x, y) {
-		const weapons = this.props.weapons;
-		const targetWeapon = weapons.find(weapon => weapon.x === x && weapon.y === y);
+		const targetWeapon = this.props.weapons.find(weapon => weapon.x === x && weapon.y === y);
 		if (targetWeapon !== undefined) {
 			return targetWeapon;
 		}
 		throw new Error(`getWeaponAt(): Weapon not found at x:${x},y:${y}`);
 	}
 
-	pickupWeapon(weapon, xDir, yDir) {
+	pickupWeaponExlclusive(weapon) {
+		// Only allows one weapon per level to be picked up.
 		const player = this.props.player;
-		let map = this.copyMap(this.props.board);
-		const currentWpnUpgrade = player.wpn.upgradeLvl;
-		map[weapon.y][weapon.x] = 1;
-		this.props.updateBoard(map);
-		this.props.changeWpn(config.weapons[currentWpnUpgrade]);
-		this.props.move(xDir, yDir);
+		this.props.pickupWeapon(weapon, config.fillValues.floor);
+		this.props.removeAllWeapons(config.fillValues.weapon);
+		this.props.setPlayerPosition(player.x, player.y, weapon.x, weapon.y);
 	}
 
 	checkMove({ xDir, yDir }) {
-		const newPosX = this.props.player.x + xDir;
-		const newPosY = this.props.player.y + yDir;
+		const player = this.props.player;
+		const newPosX = player.x + xDir;
+		const newPosY = player.y + yDir;
 		const valueAtPosition = this.getCell({
 			x: newPosX,
 			y: newPosY,
 		});
 		if (valueAtPosition === 1) {
-			this.props.move(xDir, yDir);
-		} else if (valueAtPosition === 3) {
-			this.attackEnemy(this.getEnemyAt(newPosX, newPosY), xDir, yDir);
-		} else if (valueAtPosition === 4) {
-			this.pickupWeapon(this.getWeaponAt(newPosX, newPosY), xDir, yDir);
-		} else if (valueAtPosition === 5) {
-			this.pickupHealth(this.getHealthAt(newPosX, newPosY), xDir, yDir);
-		} else if (valueAtPosition === 6) {
-			this.props.setMapLevel(this.props.gameState.level + 1);
-			this.startLevel(this.props.gameState.level);
+			this.props.setPlayerPosition(player.x, player.y, newPosX, newPosY);
+		} else if (valueAtPosition === config.fillValues.enemy) {
+			this.attackEnemy(this.getEnemyAt(newPosX, newPosY));
+		} else if (valueAtPosition === config.fillValues.weapon) {
+			this.pickupWeaponExlclusive(this.getWeaponAt(newPosX, newPosY));
+		} else if (valueAtPosition === config.fillValues.health) {
+			this.receiveHealthPack(this.getHealthAt(newPosX, newPosY));
+		} else if (valueAtPosition === config.fillValues.exit) {
+			this.startLevel(this.props.gameState.level + 1);
 		}
 	}
 
@@ -265,13 +221,6 @@ class Game extends Component {
 	}
 
 	gainXp(amount) {
-		// const xpTotal = this.props.player.xp + amount;
-		// const breakPoint = this.getXpBreakPoint();
-		// let xpToGain = xpTotal;
-		// while (xpToGain > this.getXpBreakPoint()) {
-		// 	xpToGain -= this.getXpBreakPoint();
-		// }
-		// this.props.setXp(amount);
 		let totalXp = this.props.player.xp + amount;
 		let xpBreakPoint = this.getXpBreakPoint();
 		if (totalXp >= xpBreakPoint) {
@@ -298,13 +247,6 @@ class Game extends Component {
 		return board.map(row => row.slice());
 	}
 
-	convertBoardToScreen(board, player) {
-		// Create a copy of the board to prevent modification of the original.
-		let tempBoard = this.copyMap(board);
-		tempBoard[player.y][player.x] = 2;
-		return tempBoard;
-	}
-
 	/**
 	 * Returns the visible part of the board/level.
 	 * @return {Array} The visible part of the level for the screen
@@ -312,10 +254,9 @@ class Game extends Component {
 	 */
 	getScreen() {
 		const player = this.props.player;
-		const screen = this.convertBoardToScreen(this.props.board, player);
+		const board = this.props.board;
 
-		// Object representing the camera bounding box around the
-		// player.
+		// Object representing the camera bounding box around the player.
 		let camera = {
 			top: player.y - config.camera.offset,
 			bottom: player.y + config.camera.offset,
@@ -325,11 +266,11 @@ class Game extends Component {
 		if (camera.top <= 0) {
 			camera.top = 0;
 			camera.bottom = camera.top + (2 * config.camera.offset);
-		} else if (camera.bottom > screen.length) {
-			camera.bottom = screen.length;
+		} else if (camera.bottom > board.length) {
+			camera.bottom = board.length;
 			camera.top = camera.bottom - (2 * config.camera.offset);
 		}
-		return screen.slice(camera.top, camera.bottom);
+		return board.slice(camera.top, camera.bottom);
 	}
 
 	render() {
@@ -347,6 +288,7 @@ class Game extends Component {
 				/>
 				<Screen
 					screen={this.getScreen()}
+					fillValues={config.classes}
 				/>
 			</div>
 			);
@@ -369,18 +311,21 @@ const mapDispatchToProps = (dispatch) => {
 		setMapLevel,
 		setGameOver,
 		updateBoard,
+		updatePosition,
 		move,
 		setPlayerPosition,
 		damageEnemy,
 		takeDamage,
-		healDamage,
+		pickupHealth,
 		setXp,
-		changeWpn,
+		pickupWeapon,
 		gainLevel,
 		addWeapon,
+		removeAllWeapons,
 		addEnemy,
-		removeEnemy,
+		killEnemy,
 		addHealth,
+		resetState,
 	}, dispatch)
 }
 

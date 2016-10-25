@@ -1,3 +1,5 @@
+const initialState = [];
+
 const enemy = (state = {}, action) => {
 	switch (action.type) {
 		case 'ADD_ENEMY':
@@ -8,15 +10,9 @@ const enemy = (state = {}, action) => {
 				hp: action.hp,
 				atk: action.atk,
 				lvl: action.lvl,
-				isDead: false,
 			};
 		case 'REMOVE_ENEMY': {
-			if (state.id !== action.id) {
-				return state;
-			}
-			return Object.assign({}, state, {
-				isDead: true,
-			});
+			return state.id === action.enemy.id ? {} : state;
 		}
 		case 'DAMAGE_ENEMY': {
 			if (state.id !== action.enemy.id) {
@@ -32,20 +28,22 @@ const enemy = (state = {}, action) => {
 }
 
 
-const enemies = (state = [], action) => {
+const enemies = (state = initialState, action) => {
 	switch (action.type) {
 		case 'ADD_ENEMY':
-			return [
+			return Object.assign([], [
 				...state,
 				enemy(undefined, action),
-			];
+			]);
 		case 'REMOVE_ENEMY':
-			return state.map(en => enemy(en, action));
-
+			return Object.assign([], state.map(en => enemy(en, action)));
 		case 'DAMAGE_ENEMY':
-			return state.map(en => enemy(en, action));
+			return Object.assign([], state.map(en => enemy(en, action)));
+		case 'RESET_STATE':
+			return Object.assign([], initialState);
+		default:
+			return state;
 	}
-	return state;
 }
 
 export default enemies;

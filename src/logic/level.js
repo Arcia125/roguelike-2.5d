@@ -334,8 +334,6 @@ const level = (() => {
      * @return {Object}           Generated Map
      */
     const generateRandomMap = (playerStartX, playerStartY, { height = 80, width = 60, roomSize = 10, roomCount = 30, } = {}) => {
-        // testing function
-        // roomTest(testRooms);
 
         // Generate a map full of walls to start.
         let map = createEmptyMap({ height, width });

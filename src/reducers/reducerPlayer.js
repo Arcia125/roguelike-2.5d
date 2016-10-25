@@ -1,11 +1,11 @@
 let initialPlayer = {
 	id: 1,
 	hp: 100,
-	wpn: { name: 'dagger', atk: 12, upgradeLvl: 1, },
+	wpn: { name: 'dagger', atk: 12, },
 	lvl: 1,
 	xp: 0,
-	x: 24,
-	y: 34,
+	x: 0,
+	y: 0,
 };
 
 export default (state = initialPlayer, action) => {
@@ -14,9 +14,9 @@ export default (state = initialPlayer, action) => {
 			return Object.assign({}, state, {
 				hp: state.hp - action.amount,
 			});
-		case 'HEAL_DMG':
+		case 'PICKUP_HEALTH':
 			return Object.assign({}, state, {
-				hp: state.hp + action.amount,
+				hp: state.hp + action.health.healValue,
 			});
 		case 'SET_PLAYER_POSITION':
 			return Object.assign({}, state, {
@@ -36,14 +36,15 @@ export default (state = initialPlayer, action) => {
 			return Object.assign({}, state, {
 				lvl: state.lvl + action.amount,
 			});
-		case 'CHANGE_WPN':
+		case 'PICKUP_WEAPON':
 			return Object.assign({}, state, {
 				wpn: {
-					name: action.name,
-					atk: action.atk,
-					upgradeLvl: action.upgradeLvl,
+					name: action.weapon.name,
+					atk: action.weapon.atk,
 				},
 			});
+		case 'RESET_STATE':
+			return Object.assign({}, initialPlayer);
 		default:
 			return state;
 

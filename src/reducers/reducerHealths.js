@@ -1,3 +1,5 @@
+const initialState = [];
+
 const health = (state = {}, action) => {
 	switch (action.type) {
 		case 'ADD_HEALTH':
@@ -13,15 +15,18 @@ const health = (state = {}, action) => {
 }
 
 
-const healths = (state = [], action) => {
+const healths = (state = initialState, action) => {
 	switch (action.type) {
 		case 'ADD_HEALTH':
-		return [
+		return Object.assign([], [
 			...state,
 			health(undefined, action),
-		];
+		]);
+		case 'RESET_STATE':
+			return Object.assign([], initialState);
+		default:
+			return state;
 	}
-	return state;
 }
 
 export default healths;
