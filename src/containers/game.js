@@ -21,6 +21,7 @@ import {
 	killEnemy,
 	addHealth,
 	resetState,
+	toggleLights,
 } from '../actions';
 
 // components
@@ -84,8 +85,11 @@ class Game extends Component {
 	}
 
 	handleKeys(keyEvent) {
-		if (keyEvent.keyCode == 85) {
+		if (keyEvent.keyCode === 85) {
 			this.startLevel(1);
+		}
+		if (keyEvent.keyCode === 76) {
+			this.props.toggleLights();
 		}
 		const move = moves[keyEvent.keyCode];
 		if (move) {
@@ -246,6 +250,16 @@ class Game extends Component {
 		return board.map(row => row.slice());
 	}
 
+	applyDarkness(map) {
+		const player = this.props.player;
+		return map.map((row, rowID) => row.map((cell, cellID) => {
+			const maskRadius = 5;
+			const distX = Math.abs(player.x - cellID);
+			const distY = Math.abs(player.y - rowID);
+			return distX + distY > maskRadius ? config.fillValues.darkness : cell;
+		}));
+	}
+
 	/**
 	 * Returns the visible part of the board/level.
 	 * @return {Array} The visible part of the level for the screen
@@ -253,7 +267,7 @@ class Game extends Component {
 	 */
 	getScreen() {
 		const player = this.props.player;
-		const board = this.props.board;
+		let map = this.copyMap(this.props.board);
 
 		// Object representing the camera bounding box around the player.
 		let camera = {
@@ -265,11 +279,14 @@ class Game extends Component {
 		if (camera.top <= 0) {
 			camera.top = 0;
 			camera.bottom = camera.top + (2 * config.camera.offset);
-		} else if (camera.bottom > board.length) {
-			camera.bottom = board.length;
+		} else if (camera.bottom > map.length) {
+			camera.bottom = map.length;
 			camera.top = camera.bottom - (2 * config.camera.offset);
 		}
-		return board.slice(camera.top, camera.bottom);
+		if (!this.props.gameState.lights) {
+			map = this.applyDarkness(map);
+		}
+		return map.slice(camera.top, camera.bottom);
 	}
 
 	render() {
@@ -324,6 +341,7 @@ const mapDispatchToProps = (dispatch) => {
 		killEnemy,
 		addHealth,
 		resetState,
+		toggleLights,
 	}, dispatch)
 }
 

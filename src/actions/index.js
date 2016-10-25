@@ -23,7 +23,7 @@ export const pickupHealth = (health, fillValue) => ({ type: 'PICKUP_HEALTH', hea
 
 export const pickupWeapon = (weapon, fillValue) => {
 	console.log(`You picked up the weapon ${weapon.name}!`);
-	return { type: 'PICKUP_WEAPON', weapon, fillValue };
+	return { type: 'PICKUP_WEAPON', weapon, fillValue, };
 }
 
 export const gainLevel = () => {
@@ -53,9 +53,11 @@ export const removeAllWeapons = weaponFillValue => ({ type: 'REMOVE_ALL_WEAPONS'
 let nextEnemyId = 0;
 export const addEnemy = ({ x, y, hp, atk, lvl }) => ({ type: 'ADD_ENEMY', id: nextEnemyId++, x, y, hp, atk, lvl, });
 
-export const killEnemy = (enemy, fillValue) => ({ type: 'REMOVE_ENEMY', enemy, fillValue });
+export const killEnemy = (enemy, fillValue) => ({ type: 'REMOVE_ENEMY', enemy, fillValue, });
 
 let nextHealthId = 0;
 export const addHealth = ({ x, y, healValue, }) => ({ type: 'ADD_HEALTH', id: nextHealthId++, x, y, healValue, });
 
 export const resetState = () => ({ type: 'RESET_STATE', });
+
+export const toggleLights = () => ({ type: 'TOGGLE_LIGHTS', });
