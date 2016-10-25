@@ -1,5 +1,5 @@
-import { createEmptyMap } from '../logic/level';
-const initialBoard = createEmptyMap();
+import level from '../logic/level';
+const initialBoard = level.createEmptyMap();
 
 const boardRow = (state = [], action) => {
 	switch (action.type) {

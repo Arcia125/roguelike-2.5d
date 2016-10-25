@@ -1,5 +1,5 @@
-var style = require('./main.scss');
-var html = require('./index.html');
+require('./main.scss');
+require('./index.html');
 
 const React = require('react');
 const ReactDOM = require('react-dom');
@@ -20,6 +20,10 @@ const startGame = () => {
 }
 
 window.addEventListener('DOMContentLoaded', startGame, false);
+
+const boundKeys = [87, 38, 68, 39, 83, 65, 37];
 window.addEventListener('keydown', function(e) {
-	e.preventDefault();
+	if (boundKeys.includes(e.keyCode)) {
+		e.preventDefault();
+	}
 }, false);

@@ -4,6 +4,8 @@ $player-bg: #2222AA;
 $enemy-bg: #AA2222;
 $weapon-bg: #AAAA22;
 $health-bg: #22AA22;
+$exit-bg: #FF7722;
+$boss-bg: #FF44FF;
 $darkness-bg: #000000;
 
 @mixin flex($direction: row, $wrap: wrap) {

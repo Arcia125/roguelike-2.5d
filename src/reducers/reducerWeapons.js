@@ -5,6 +5,7 @@ const weapon = (state = {}, action) => {
 				id: action.id,
 				x: action.x,
 				y: action.y,
+				lvl: action.lvl,
 			};
 		default:
 			return state;

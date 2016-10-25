@@ -7,15 +7,17 @@ const classes = {
 	3: 'enemy',
 	4: 'weapon',
 	5: 'health',
-	6: 'darkness',
+	6: 'exit',
+	7: 'boss',
+	99: 'darkness',
 };
 class Screen extends Component {
 	/**
 	 * Returns a className based on the cellValue argument.
 	 * @param  {Number} cellValue Value from the this.props.screen array.
 	 * @return {String}      CSS class based on cellValue argument.
-	 * input:	0		1		2		3		4		5
-	 * output:	wall	floor	player	enemy	weapon	health
+	 * input:	0		1		2		3		4		5		6		7		99
+	 * output:	wall	floor	player	enemy	weapon	health	exit	boss	darkness
 	 */
 	getCellClass(cellValue) {
 		return classes[cellValue];

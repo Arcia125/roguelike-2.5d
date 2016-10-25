@@ -7,7 +7,7 @@ body {
 
 .hud-container {
 	text-align: center;
-	font-size: 2rem;
+	font-size: 1.8rem;
 	font-family: sans-serif;
 }
 
@@ -53,6 +53,14 @@ body {
 
 .health {
 	background: $health-bg;
+}
+
+.exit {
+	background: $exit-bg;
+}
+
+.boss {
+	background: $boss-bg;
 }
 
 .darkness {
