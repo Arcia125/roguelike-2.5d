@@ -9,6 +9,15 @@ const config = {
 
 	camera: {
 		offset: 25,
+		maskRadius: 8,
+	},
+
+	finalLevel: 4,
+
+	boss: {
+		name: 'BOSS',
+		hp: 300,
+		atk: 100,
 	},
 
 	weapons: [
@@ -64,6 +73,8 @@ const config = {
 		boss: 7,
 		darkness: 99,
 	},
+
+
 };
 
 export default config;

@@ -41,6 +41,11 @@ const enemies = (state = initialState, action) => {
 			return Object.assign([], state.map(en => enemy(en, action)));
 		case 'RESET_STATE':
 			return Object.assign([], initialState);
+		case 'ADD_BOSS':
+			return Object.assign([], [
+				...state,
+				action.boss,
+				]);
 		default:
 			return state;
 	}

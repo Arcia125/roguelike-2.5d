@@ -61,3 +61,8 @@ export const addHealth = ({ x, y, healValue, }) => ({ type: 'ADD_HEALTH', id: ne
 export const resetState = () => ({ type: 'RESET_STATE', });
 
 export const toggleLights = () => ({ type: 'TOGGLE_LIGHTS', });
+
+export const addBoss = (boss) => {
+	const finalBoss = Object.assign(boss, { id: nextEnemyId++ });
+	return { type: 'ADD_BOSS', boss: finalBoss, };
+}

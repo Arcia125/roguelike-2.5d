@@ -22,6 +22,7 @@ import {
 	addHealth,
 	resetState,
 	toggleLights,
+	addBoss,
 } from '../actions';
 
 // components
@@ -114,18 +115,21 @@ class Game extends Component {
 
 	getObjectsFromMap(generatedMap, levelNumber) {
 		generatedMap.forEach((row, rowID) => {
-			row.forEach((cell, cellID) => {
+			row.forEach((cell, cellID, arr) => {
 				if (cell === config.fillValues.enemy) {
 					this.props.addEnemy({ x: cellID, y: rowID, hp: 40, atk: 12, lvl: levelNumber, });
 				} else if (cell === config.fillValues.weapon) {
 					this.props.addWeapon(Object.assign({ x: cellID, y: rowID, }, config.weapons[levelNumber]));
 				} else if (cell === config.fillValues.health) {
 					this.props.addHealth({ x: cellID, y: rowID, healValue: 40 + (levelNumber * 10), });
+				} else if (cell === config.fillValues.exit && levelNumber >= config.finalLevel) {
+					arr[cellID] = 7;
+					this.props.addBoss(Object.assign({}, config.boss, { x: cellID, y: rowID, lvl: levelNumber, }));
+					console.log(this.props.enemies);
 				}
 			});
 		});
 	}
-
 	getEnemyAt(x, y) {
 		const targetEnemy = this.props.enemies.find(enemy => enemy.x === x && enemy.y === y);
 		if (targetEnemy !== undefined) {
@@ -136,12 +140,15 @@ class Game extends Component {
 
 	attackEnemy(enemy, xDir, yDir) {
 		const player = this.props.player;
-		const playerAtk = this.calculateAtk(player.lvl, player.wpn.atk);
-		const enemyAtk = this.calculateAtk(enemy.lvl);
+		const playerAtk = this.randomizeAtk(player.lvl, player.wpn.atk);
+		const enemyAtk = this.randomizeAtk(enemy.lvl);
 		this.props.damageEnemy(enemy, playerAtk);
 		if (enemy.hp - playerAtk <= 0) {
 			this.killEnemy(enemy, xDir, yDir);
 			this.gainXp(enemy.lvl * 20);
+			if (enemy.name === "BOSS") {
+				this.props.setGameOver(true);
+			}
 		}else {
 			this.props.takeDamage(enemyAtk);
 			if (this.props.player.hp <= 0) {
@@ -205,6 +212,8 @@ class Game extends Component {
 			this.receiveHealthPack(this.getHealthAt(newPosX, newPosY));
 		} else if (valueAtPosition === config.fillValues.exit) {
 			this.startLevel(this.props.gameState.level + 1);
+		} else if (valueAtPosition === config.fillValues.boss) {
+			this.attackEnemy(this.getEnemyAt(newPosX, newPosY));
 		}
 	}
 
@@ -239,6 +248,9 @@ class Game extends Component {
 
 	randomizeAtk(lvl, wpnDmg) {
 		const baseAtk = this.calculateAtk(lvl, wpnDmg);
+		const maxAtk = baseAtk * 1.5;
+		const minAtk = baseAtk * 0.5;
+		return rng.getRandomInt(minAtk, maxAtk);
 	}
 
 	calculateAtk(lvl, wpnDmg = 12) {
@@ -253,7 +265,7 @@ class Game extends Component {
 	applyDarkness(map) {
 		const player = this.props.player;
 		return map.map((row, rowID) => row.map((cell, cellID) => {
-			const maskRadius = 5;
+			const maskRadius = config.camera.maskRadius;
 			const distX = Math.abs(player.x - cellID);
 			const distY = Math.abs(player.y - rowID);
 			return distX + distY > maskRadius ? config.fillValues.darkness : cell;
@@ -266,6 +278,9 @@ class Game extends Component {
 	 * component to render.
 	 */
 	getScreen() {
+		if (this.props.gameState.gameOver) {
+			console.log('GAME OVER');
+		}
 		const player = this.props.player;
 		let map = this.copyMap(this.props.board);
 
@@ -342,6 +357,7 @@ const mapDispatchToProps = (dispatch) => {
 		addHealth,
 		resetState,
 		toggleLights,
+		addBoss,
 	}, dispatch)
 }
 
