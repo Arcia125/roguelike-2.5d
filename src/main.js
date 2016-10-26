@@ -21,7 +21,7 @@ const startGame = () => {
 
 window.addEventListener('DOMContentLoaded', startGame, false);
 
-const boundKeys = [87, 38, 68, 39, 83, 65, 37];
+const boundKeys = [87, 38, 68, 39, 83, 65, 37, 40];
 window.addEventListener('keydown', function(e) {
 	if (boundKeys.includes(e.keyCode)) {
 		e.preventDefault();

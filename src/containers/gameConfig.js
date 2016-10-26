@@ -8,7 +8,7 @@ const config = {
 	},
 
 	camera: {
-		offset: 25,
+		offset: 15,
 		maskRadius: 8,
 	},
 
@@ -28,7 +28,7 @@ const config = {
 		},
 		{
 			name: 'sword',
-			atk: 28,
+			atk: 24,
 			lvl: 2,
 		},
 		{

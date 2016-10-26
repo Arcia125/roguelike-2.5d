@@ -117,15 +117,14 @@ class Game extends Component {
 		generatedMap.forEach((row, rowID) => {
 			row.forEach((cell, cellID, arr) => {
 				if (cell === config.fillValues.enemy) {
-					this.props.addEnemy({ x: cellID, y: rowID, hp: 40, atk: 12, lvl: levelNumber, });
+					this.props.addEnemy({ x: cellID, y: rowID, hp: 40 + (25 * levelNumber) , atk: this.calculateAtk(levelNumber), lvl: levelNumber, });
 				} else if (cell === config.fillValues.weapon) {
 					this.props.addWeapon(Object.assign({ x: cellID, y: rowID, }, config.weapons[levelNumber]));
 				} else if (cell === config.fillValues.health) {
-					this.props.addHealth({ x: cellID, y: rowID, healValue: 40 + (levelNumber * 10), });
+					this.props.addHealth({ x: cellID, y: rowID, healValue: 40 + (levelNumber * 15), });
 				} else if (cell === config.fillValues.exit && levelNumber >= config.finalLevel) {
 					arr[cellID] = 7;
 					this.props.addBoss(Object.assign({}, config.boss, { x: cellID, y: rowID, lvl: levelNumber, }));
-					console.log(this.props.enemies);
 				}
 			});
 		});
@@ -268,7 +267,10 @@ class Game extends Component {
 			const maskRadius = config.camera.maskRadius;
 			const distX = Math.abs(player.x - cellID);
 			const distY = Math.abs(player.y - rowID);
-			return distX + distY > maskRadius ? config.fillValues.darkness : cell;
+			if (Math.sqrt(Math.pow(distX, 2) + Math.pow(distY, 2)) >= maskRadius) {
+				return config.fillValues.darkness;
+			}
+			return cell;
 		}));
 	}
 
