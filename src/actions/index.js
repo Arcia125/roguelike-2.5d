@@ -11,10 +11,11 @@ export const takeDamage = amount => {
 
 export const setMapLevel = level => ({ type: 'SET_MAP_LEVEL', level });
 
-export const setGameOver = gameOver => {
+export const setGameOver = (gameOver, endCondition) => {
 	return {
 		type: 'SET_GAME_OVER',
 		gameOver,
+		endCondition,
 	};
 }
 
@@ -72,3 +73,5 @@ export const addMsg = (msg, logLevel) => {
 export const removeMsg = msg => {
 	return { type: 'REMOVE_MSG', msg, };
 }
+
+// export const setWin = didWin => ({ type: 'SET_WIN', didWin, });

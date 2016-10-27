@@ -22,28 +22,28 @@ const config = {
 
 	weapons: [
 		{
-			name: 'dagger',
+			name: 'Dagger',
 			atk: 12,
 			lvl: 1,
 		},
 		{
-			name: 'sword',
-			atk: 24,
+			name: 'Sword',
+			atk: 18,
 			lvl: 2,
 		},
 		{
-			name: 'great sword',
-			atk: 36,
+			name: 'Great Sword',
+			atk: 24,
 			lvl: 3,
 		},
 		{
-			name: 'katana',
-			atk: 48,
+			name: 'Katana',
+			atk: 32,
 			lvl: 4,
 		},
 		{
-			name: 'Molten Dagger',
-			atk: 60,
+			name: 'Flame Sword',
+			atk: 45,
 			lvl: 5,
 		},
 	],

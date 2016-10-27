@@ -1,7 +1,7 @@
 let initialPlayer = {
 	id: 1,
 	hp: 100,
-	wpn: { name: 'dagger', atk: 12, },
+	wpn: { name: 'Dagger', atk: 12, },
 	lvl: 1,
 	xp: 0,
 	x: 0,

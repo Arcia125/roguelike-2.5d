@@ -82,6 +82,7 @@ class Game extends Component {
 	componentWillMount() {
 		window.addEventListener('keydown', this.debounce(this.handleKeys.bind(this), 1), true);
 		this.startLevel(1);
+		this.log('Greetings hero. Your mission is to reach the 4th level of this dungeon and slay the dungeon boss. First you should gain some experience fighting his minions. Be on the lookout for weapons to increase your fighting power. Good luck hero.', logLevel.info);
 	}
 
 	debounce(func, delay) {
@@ -161,8 +162,7 @@ class Game extends Component {
 		if (enemy.hp - playerAtk <= 0) {
 			this.killEnemy(enemy, xDir, yDir);
 			if (enemy.name === "BOSS") {
-				this.props.setGameOver(true);
-				this.isGameOver();
+				this.props.setGameOver(true, 'win');
 				return true;
 			}
 			let xpGain = enemy.lvl * 20;
@@ -172,8 +172,7 @@ class Game extends Component {
 			this.props.takeDamage(enemyAtk);
 			if (this.props.player.hp <= 0) {
 				this.log('You died.', logLevel.warn);
-				this.props.setGameOver(true);
-				this.isGameOver();
+				this.props.setGameOver(true, 'lose');
 			} else {
 				this.log(`You were attacked by a level ${enemy.lvl} enemy for ${enemyAtk} damage.`, logLevel.danger)
 			}
@@ -335,23 +334,15 @@ class Game extends Component {
 		return map.slice(camera.top, camera.bottom);
 	}
 
-	isGameOver() {
-		if (this.props.gameState.gameOver && !this.gameOver) {
-			this.gameOver = true;
-			this.log('Game Over!', logLevel.warn);
-		} else if (!this.props.gameState.gameOver && this.gameOver) {
-			this.gameOver = false;
-		}
-	}
-
-	componentWillReceiveProps(nextProps) {
-		this.isGameOver();
-	}
-
 	render() {
 		const player = this.props.player;
 		return (
 			<div className='game'>
+				<div className='title-container'>
+					<h1 className='game-title'>
+						React Roguelike Dungeon
+					</h1>
+				</div>
 				<Hud
 					hp={player.hp}
 					wpn={player.wpn.name}
@@ -363,14 +354,38 @@ class Game extends Component {
 				/>
 				<div className='legend-container'>
 					<span className='legend'>
-						Wall:<span className='screen-cell wall'/>
-						Floor:<span className='screen-cell floor'/>
-						Player:<span className='screen-cell player'/>
-						Enemy:<span className='screen-cell enemy'/>
-						Weapon:<span className='screen-cell weapon'/>
-						Health:<span className='screen-cell health'/>
-						Exit:<span className='screen-cell exit'/>
-						Boss:<span className='screen-cell boss'/>
+						<div className='legend-item'>
+							<span className='screen-cell wall'/>
+							<span className='legend-item-text'> Wall</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell floor'/>
+							<span className='legend-item-text'> Floor</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell player'/>
+							<span className='legend-item-text'> Player</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell enemy'/>
+							<span className='legend-item-text'> Enemy</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell weapon'/>
+							<span className='legend-item-text'> Weapon</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell health'/>
+							<span className='legend-item-text'> Health</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell exit'/>
+							<span className='legend-item-text'> Exit</span>
+						</div>
+						<div className='legend-item'>
+							<span className='screen-cell boss'/>
+							<span className='legend-item-text'> Boss</span>
+						</div>
 					</span>
 				</div>
 				{!this.props.gameState.gameOver ?
@@ -380,7 +395,7 @@ class Game extends Component {
 				/>
 				:
 				<div className='menu'>
-					<h1 className='game-over-header'>Game Over</h1>
+					<h1 className='game-over-header'>{this.props.gameState.endCondition === 'win' ? 'You Win' : 'Game Over'}</h1>
 					<button onClick={() => this.startLevel(1)} className='menu-button'>New Game</button>
 				</div>}
 				<CombatLog/>

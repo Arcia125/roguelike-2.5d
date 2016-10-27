@@ -2,6 +2,7 @@ const initialGameState = {
 	level: 1,
 	gameOver: false,
 	lights: false,
+	endCondition: '',
 };
 
 const gameState = (state = initialGameState, action) => {
@@ -13,6 +14,7 @@ const gameState = (state = initialGameState, action) => {
 		case 'SET_GAME_OVER':
 			return Object.assign({}, state, {
 				gameOver: action.gameOver,
+				endCondition: action.endCondition,
 			});
 		case 'RESET_STATE':
 			return Object.assign({}, initialGameState);
