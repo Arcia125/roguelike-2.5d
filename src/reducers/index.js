@@ -6,6 +6,7 @@ import WeaponReducer from './reducerWeapons';
 import EnemyReducer from './reducerEnemies';
 import HealthReducer from './reducerHealths';
 import GameStateReducer from './reducerGameState';
+import LogReducer from './reducerLog';
 
 const allReducers = combineReducers({
 	player: PlayerReducer,
@@ -14,6 +15,7 @@ const allReducers = combineReducers({
 	enemies: EnemyReducer,
 	healths: HealthReducer,
 	gameState: GameStateReducer,
+	log: LogReducer,
 });
 
 export default allReducers;

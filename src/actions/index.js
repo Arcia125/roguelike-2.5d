@@ -3,7 +3,6 @@
  */
 
 export const takeDamage = amount => {
-	console.log(`Player sustained ${amount} damage!`);
 	return {
 		type: 'TAKE_DMG',
 		amount,
@@ -22,12 +21,10 @@ export const setGameOver = gameOver => {
 export const pickupHealth = (health, fillValue) => ({ type: 'PICKUP_HEALTH', health, fillValue, });
 
 export const pickupWeapon = (weapon, fillValue) => {
-	console.log(`You picked up the weapon ${weapon.name}!`);
 	return { type: 'PICKUP_WEAPON', weapon, fillValue, };
 }
 
 export const gainLevel = () => {
-	console.log(`You gained a level!`);
 	return { type: 'GAIN_LEVEL', amount: 1, };
 }
 
@@ -65,4 +62,13 @@ export const toggleLights = () => ({ type: 'TOGGLE_LIGHTS', });
 export const addBoss = (boss) => {
 	const finalBoss = Object.assign(boss, { id: nextEnemyId++ });
 	return { type: 'ADD_BOSS', boss: finalBoss, };
+}
+
+let nextMsgId = 0;
+export const addMsg = (msg, logLevel) => {
+	return { type: 'ADD_MSG', msg, id: nextMsgId++, logLevel, };
+}
+
+export const removeMsg = msg => {
+	return { type: 'REMOVE_MSG', msg, };
 }

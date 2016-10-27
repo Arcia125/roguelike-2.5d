@@ -8,6 +8,12 @@ $exit-bg: #FF7722;
 $boss-bg: #FF44FF;
 $darkness-bg: #000000;
 
+$log-bg: #333333;
+$info-color: #DDDDEF;
+$warn-color: #CC9933;
+$danger-color: #FF1121;
+$heal-color: #44FF33;
+
 @mixin flex($direction: row, $wrap: wrap) {
 	display: -ms-Flexbox;
 	-ms-box-orient: horizontal;

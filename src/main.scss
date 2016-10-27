@@ -27,8 +27,8 @@ body {
 
 .screen-cell {
 	display: inline-block;
-	height: 1.5vw;
-	width: 1.5vw;
+	height: 2vh;
+	width: 2vh;
 }
 
 .wall {
@@ -65,4 +65,76 @@ body {
 
 .darkness {
 	background: $darkness-bg;
+}
+
+.log {
+	position: relative;
+	height: 20vh;
+	width: 50vw;
+	margin-top: 2vh;
+	margin-left: auto;
+	margin-right: auto;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	background: $log-bg;
+	border-width: 3px;
+	border-style: outset;
+	border-color: #888888;
+}
+
+.msg-container {
+	position: absolute;
+	bottom: 0;
+}
+
+.msg {
+	display: block;
+	color: $info-color;
+	&.info {
+		color: $info-color;
+	}
+	&.warn {
+		color: $warn-color;
+	}
+	&.danger {
+		color: $danger-color;
+	}
+	&.heal {
+		color: $heal-color;
+	}
+}
+
+.menu {
+	height: 60vh;
+	width: 120vh;
+	@include flex(column);
+	justify-content: center;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.menu-button {
+	width: 15vw;
+	height: 5vw;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.game-over-header {
+	text-align: center;
+	font-family: serif;
+}
+
+.legend {
+	@include flex(row, nowrap);
+	justify-content: space-between;
+}
+
+.legend-container {
+	width: 50%;
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: .5rem;
+	margin-bottom: .5rem;
 }

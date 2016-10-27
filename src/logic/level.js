@@ -402,7 +402,7 @@ const level = (() => {
                         return 4;
                     }
                     // Replace the floor cell with a health pack.
-                    if (rand === 5) {
+                    if (rand === 5 || rand === 6) {
                         return 5;
                     }
                 }

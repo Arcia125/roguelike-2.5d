@@ -23,11 +23,14 @@ import {
 	resetState,
 	toggleLights,
 	addBoss,
+	addMsg,
+	removeMsg,
 } from '../actions';
 
 // components
 import Hud from '../components/hud';
 import Screen from '../components/screen';
+import CombatLog from '../components/combatLog';
 
 // logic
 import level from '../logic/level';
@@ -68,10 +71,17 @@ const moves = {
 	'37': dir.left,
 };
 
+const logLevel = {
+	info: 'info',
+	warn: 'warn',
+	danger: 'danger',
+	heal: 'heal',
+};
+
 class Game extends Component {
 	componentWillMount() {
-		this.startLevel(1);
 		window.addEventListener('keydown', this.debounce(this.handleKeys.bind(this), 1), true);
+		this.startLevel(1);
 	}
 
 	debounce(func, delay) {
@@ -79,7 +89,7 @@ class Game extends Component {
 		return function(...args) {
 			const context = this;
 			clearTimeout(timer);
-			timer = setTimeout(function() {
+			timer = setTimeout(function debounced() {
 				func.apply(context, args);
 			}, delay);
 		};
@@ -102,6 +112,8 @@ class Game extends Component {
 		this.props.setMapLevel(levelNumber);
 		if (levelNumber === 1) {
 			this.props.resetState();
+		} else {
+			this.log(`You have reached stage ${levelNumber}.`, logLevel.info);
 		}
 		const player = this.props.player;
 		const maxMainRoomSize = config.map.roomSize * 1.5;
@@ -117,7 +129,7 @@ class Game extends Component {
 		generatedMap.forEach((row, rowID) => {
 			row.forEach((cell, cellID, arr) => {
 				if (cell === config.fillValues.enemy) {
-					this.props.addEnemy({ x: cellID, y: rowID, hp: 40 + (25 * levelNumber) , atk: this.calculateAtk(levelNumber), lvl: levelNumber, });
+					this.props.addEnemy({ x: cellID, y: rowID, hp: 40 + (30 * levelNumber) , atk: this.calculateAtk(levelNumber, 30), lvl: levelNumber, });
 				} else if (cell === config.fillValues.weapon) {
 					this.props.addWeapon(Object.assign({ x: cellID, y: rowID, }, config.weapons[levelNumber]));
 				} else if (cell === config.fillValues.health) {
@@ -138,20 +150,32 @@ class Game extends Component {
 	}
 
 	attackEnemy(enemy, xDir, yDir) {
+		if (this.props.gameState.gameOver) {
+			return false;
+		}
 		const player = this.props.player;
 		const playerAtk = this.randomizeAtk(player.lvl, player.wpn.atk);
 		const enemyAtk = this.randomizeAtk(enemy.lvl);
 		this.props.damageEnemy(enemy, playerAtk);
+		this.log(`You attacked a level ${enemy.lvl} enemy dealing ${playerAtk} damage.`, logLevel.warn);
 		if (enemy.hp - playerAtk <= 0) {
 			this.killEnemy(enemy, xDir, yDir);
-			this.gainXp(enemy.lvl * 20);
 			if (enemy.name === "BOSS") {
 				this.props.setGameOver(true);
+				this.isGameOver();
+				return true;
 			}
+			let xpGain = enemy.lvl * 20;
+			this.log(`You gained ${xpGain}xp.`, logLevel.info);
+			this.gainXp(xpGain);
 		}else {
 			this.props.takeDamage(enemyAtk);
 			if (this.props.player.hp <= 0) {
+				this.log('You died.', logLevel.warn);
 				this.props.setGameOver(true);
+				this.isGameOver();
+			} else {
+				this.log(`You were attacked by a level ${enemy.lvl} enemy for ${enemyAtk} damage.`, logLevel.danger)
 			}
 		}
 	}
@@ -159,6 +183,7 @@ class Game extends Component {
 	killEnemy(enemy) {
 		const player = this.props.player;
 		this.props.killEnemy(enemy, config.fillValues.floor);
+		this.log(`You killed a level ${enemy.lvl} enemy!`, logLevel.info);
 		this.props.setPlayerPosition(player.x, player.y, enemy.x, enemy.y);
 	}
 
@@ -174,6 +199,7 @@ class Game extends Component {
 	receiveHealthPack(health) {
 		const player = this.props.player;
 		this.props.pickupHealth(health, config.fillValues.floor);
+		this.log(`Healed for ${health.healValue}`, logLevel.heal);
 		this.props.setPlayerPosition(player.x, player.y, health.x, health.y);
 	}
 
@@ -189,8 +215,13 @@ class Game extends Component {
 		// Only allows one weapon per level to be picked up.
 		const player = this.props.player;
 		this.props.pickupWeapon(weapon, config.fillValues.floor);
+		this.log(`You picked up a ${weapon.name}`, logLevel.info);
 		this.props.removeAllWeapons(config.fillValues.weapon);
 		this.props.setPlayerPosition(player.x, player.y, weapon.x, weapon.y);
+	}
+
+	log(msg, logLevel) {
+		this.props.addMsg(msg, logLevel);
 	}
 
 	checkMove({ xDir, yDir }) {
@@ -232,11 +263,12 @@ class Game extends Component {
 	}
 
 	gainXp(amount) {
-		let totalXp = this.props.player.xp + amount;
-		let xpBreakPoint = this.getXpBreakPoint();
+		const totalXp = this.props.player.xp + amount;
+		const xpBreakPoint = this.getXpBreakPoint();
 		if (totalXp >= xpBreakPoint) {
 			this.props.gainLevel();
-			let newTotal = totalXp - xpBreakPoint;
+			this.log(`Level up! You gained a level. You are now level ${this.props.player.lvl}.`, logLevel.warn);
+			const newTotal = totalXp - xpBreakPoint;
 			this.props.setXp(0);
 			this.gainXp(newTotal);
 			return true;
@@ -280,9 +312,6 @@ class Game extends Component {
 	 * component to render.
 	 */
 	getScreen() {
-		if (this.props.gameState.gameOver) {
-			console.log('GAME OVER');
-		}
 		const player = this.props.player;
 		let map = this.copyMap(this.props.board);
 
@@ -306,6 +335,19 @@ class Game extends Component {
 		return map.slice(camera.top, camera.bottom);
 	}
 
+	isGameOver() {
+		if (this.props.gameState.gameOver && !this.gameOver) {
+			this.gameOver = true;
+			this.log('Game Over!', logLevel.warn);
+		} else if (!this.props.gameState.gameOver && this.gameOver) {
+			this.gameOver = false;
+		}
+	}
+
+	componentWillReceiveProps(nextProps) {
+		this.isGameOver();
+	}
+
 	render() {
 		const player = this.props.player;
 		return (
@@ -319,10 +361,29 @@ class Game extends Component {
 					maxXp={this.getXpBreakPoint()}
 					dungeonLevel={this.props.gameState.level}
 				/>
+				<div className='legend-container'>
+					<span className='legend'>
+						Wall:<span className='screen-cell wall'/>
+						Floor:<span className='screen-cell floor'/>
+						Player:<span className='screen-cell player'/>
+						Enemy:<span className='screen-cell enemy'/>
+						Weapon:<span className='screen-cell weapon'/>
+						Health:<span className='screen-cell health'/>
+						Exit:<span className='screen-cell exit'/>
+						Boss:<span className='screen-cell boss'/>
+					</span>
+				</div>
+				{!this.props.gameState.gameOver ?
 				<Screen
 					screen={this.getScreen()}
 					fillValues={config.classes}
 				/>
+				:
+				<div className='menu'>
+					<h1 className='game-over-header'>Game Over</h1>
+					<button onClick={() => this.startLevel(1)} className='menu-button'>New Game</button>
+				</div>}
+				<CombatLog/>
 			</div>
 			);
 	}
@@ -360,6 +421,8 @@ const mapDispatchToProps = (dispatch) => {
 		resetState,
 		toggleLights,
 		addBoss,
+		addMsg,
+		removeMsg,
 	}, dispatch)
 }
 
