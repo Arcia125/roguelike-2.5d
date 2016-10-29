@@ -315,23 +315,39 @@ class Game extends Component {
 		let map = this.copyMap(this.props.board);
 
 		// Object representing the camera bounding box around the player.
+		const cameraOffset = config.camera.offset;
 		let camera = {
-			top: player.y - config.camera.offset,
-			bottom: player.y + config.camera.offset,
+			top: player.y - cameraOffset,
+			bottom: player.y + cameraOffset,
+			left: player.x - cameraOffset,
+			right: player.x + cameraOffset,
 		};
 
 		// Keep the camera within the board.
-		if (camera.top <= 0) {
-			camera.top = 0;
-			camera.bottom = camera.top + (2 * config.camera.offset);
-		} else if (camera.bottom > map.length) {
-			camera.bottom = map.length;
-			camera.top = camera.bottom - (2 * config.camera.offset);
+		let cameraTop = camera.top;
+		let cameraBottom = camera.bottom;
+		let cameraLeft = camera.left;
+		let cameraRight = camera.right;
+		const mapHeight = map.length;
+		const mapWidth = map[0].length;
+		if (cameraTop <= 0) {
+			cameraTop = 0;
+			cameraBottom = cameraTop + (2 * cameraOffset);
+		} else if (cameraBottom > mapHeight) {
+			cameraBottom = mapHeight;
+			cameraTop = cameraBottom - (2 * cameraOffset);
+		}
+		if (cameraLeft <= 0) {
+			cameraLeft = 0;
+			cameraRight = cameraLeft + (2 * cameraOffset);
+		} else if (cameraRight > mapWidth) {
+			cameraRight = mapWidth;
+			cameraLeft = cameraRight - (2 * cameraOffset);
 		}
 		if (!this.props.gameState.lights) {
 			map = this.applyDarkness(map);
 		}
-		return map.slice(camera.top, camera.bottom);
+		return map.slice(cameraTop, cameraBottom).map(row => row.slice(cameraLeft, cameraRight));
 	}
 
 	render() {

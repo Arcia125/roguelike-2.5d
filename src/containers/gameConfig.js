@@ -2,13 +2,13 @@ const config = {
 
 	map: {
 		height: 80,
-		width: 60,
+		width: 80,
 		roomSize: 12,
 		roomCount: 25,
 	},
 
 	camera: {
-		offset: 15,
+		offset: 10,
 		maskRadius: 8,
 	},
 

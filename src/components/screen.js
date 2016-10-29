@@ -13,12 +13,12 @@ class Screen extends Component {
 			row = row.map((cellValue, cellId) => {
 				const cellClass = 'screen-cell ' + this.props.fillValues[cellValue];
 				return (
-					<span id={`x-${cellId}_y-${rowId}`} key={cellId + (rowId * width)} className={cellClass}>
+					<span key={cellId + (rowId * width)} className={cellClass}>
 					</span>
 					);
 			});
 			return (
-				<div id={rowId + (width * width)} key={rowId + (width * width)} className='screen-row'>
+				<div key={rowId + (width * width)} className='screen-row'>
 					{row}
 				</div>
 				);
